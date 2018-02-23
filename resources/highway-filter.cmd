@@ -1,0 +1,1 @@
+motorway,trunk,primary,secondary,motorway_link,trunk_link,primary_link,secondary_link,tertiary,residential,unclassified,road,living_street,service,roundabout,coastline
