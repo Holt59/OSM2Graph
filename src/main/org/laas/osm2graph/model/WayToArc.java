@@ -98,7 +98,12 @@ public class WayToArc {
         else {
             // Numeric speed
             String[] parts = maxspeed.split(" ");
-            speed = Integer.valueOf(parts[0]);
+            try {
+                speed = Integer.valueOf(parts[0]);
+            }
+            catch (NumberFormatException exception) {
+                speed = roadtype != null ? maxSpeedForRoadType(roadtype) : DEFAULT_MAXIMUM_SPEED;
+            }
 
             if (parts.length == 1) {
                 return speed;
