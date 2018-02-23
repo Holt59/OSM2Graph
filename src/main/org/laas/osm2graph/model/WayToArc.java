@@ -41,11 +41,20 @@ public class WayToArc {
         this.roadinfos = new ArrayList<RoadInformation>();
     }
 
-    private RoadType getRoadType(String roadtype) {
-        if (roadtype == null) {
-            return null;
+    private RoadType getRoadType(Way way) {
+        Collection<Tag> tags = way.getTags();
+        Iterator<Tag> itTag = tags.iterator();
+        RoadType roadtype = null;
+        while (itTag.hasNext() && roadtype == null) {
+            Tag tag = itTag.next();
+            if (tag.getKey().equals("highway")) {
+                roadtype = RoadType.valueOf(tag.getValue().toUpperCase());
+            }
+            else if (tag.getKey().equals("natural") && tag.getValue().equals("coastline")) {
+                roadtype = RoadType.COASTLINE;
+            }
         }
-        return RoadType.valueOf(roadtype.toUpperCase());
+        return roadtype;
     }
 
     private int maxSpeedForRoadType(RoadType roadtype) {
@@ -140,9 +149,6 @@ public class WayToArc {
             if (tag.getKey().equals("name")) {
                 name = tag.getValue();
             }
-            if (tag.getKey().equals("highway")) {
-                roadType = getRoadType(tag.getValue());
-            }
             if (tag.getKey().equals("oneway")) {
                 oneWay = tag.getValue().equals("yes");
             }
@@ -151,6 +157,7 @@ public class WayToArc {
             }
         }
 
+        roadType = getRoadType(way);
         int maxSpeed = getMaximumSpeed(sMaxSpeed, roadType);
 
         RoadInformation roadinfo = null;
