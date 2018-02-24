@@ -3,8 +3,8 @@ package org.laas.osm2graph.writers;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.laas.osm2graph.graph.Arc;
@@ -14,6 +14,14 @@ import org.laas.osm2graph.graph.RoadInformation;
 import org.laas.osm2graph.graph.RoadInformation.RoadType;
 import org.laas.osm2graph.graph.Vertex;
 
+/**
+ * This writer generates files that were used for practice session at INSA of
+ * Toulouse. This writer is here for compatibility, the 2018 should be used
+ * instead.
+ * 
+ * @author Mikael
+ *
+ */
 public class BinaryGraphWriterInsa2016 implements GraphWriter {
 
     // Map version and magic number targeted for this reader.
@@ -98,8 +106,7 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
         dos.writeByte(value & 0xff);
     }
 
-    protected IdentityHashMap<RoadInformation, Integer> getRoadInformations(
-            ArrayList<Vertex> nodes) {
+    protected IdentityHashMap<RoadInformation, Integer> getRoadInformations(List<Vertex> nodes) {
         IdentityHashMap<RoadInformation, Integer> rinfos = new IdentityHashMap<RoadInformation, Integer>();
         for (Vertex node: nodes) {
             for (Arc arc: node.getSuccessors()) {
@@ -120,7 +127,7 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
         dos.writeInt(graph.getMapId());
         dos.writeInt(DEFAULT_ZONE);
 
-        ArrayList<Vertex> nodes = graph.getNodes();
+        List<Vertex> nodes = graph.getNodes();
         IdentityHashMap<RoadInformation, Integer> infos = getRoadInformations(nodes);
 
         RoadInformation[] sortedInfos = new RoadInformation[infos.size()];
@@ -174,14 +181,12 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
                 dos.writeShort(arc.getLength());
 
                 // Number of segments.
-                ArrayList<Point> points = arc.getPoints();
+                List<Point> points = arc.getPoints();
                 dos.writeShort(points.size() - 2);
 
                 for (int i = 1; i < points.size() - 1; ++i) {
-                    dos.writeShort((int) (2.e5
-                            * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
-                    dos.writeShort((int) (2.e5
-                            * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
+                    dos.writeShort((int) (2.e5 * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
+                    dos.writeShort((int) (2.e5 * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
                 }
             }
         }

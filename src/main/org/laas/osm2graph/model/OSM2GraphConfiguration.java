@@ -38,7 +38,7 @@ public class OSM2GraphConfiguration {
      * Convenience method.
      *
      * @param bbox the bounding box specification in format minLat, minLon, maxLat,
-     * maxLon in exactly this order as degrees
+     *        maxLon in exactly this order as degrees
      */
     public void addBboxConfiguration(String bbox) {
         if (bbox != null) {
@@ -62,8 +62,7 @@ public class OSM2GraphConfiguration {
             }
             File f = new File(file);
             if (f.isDirectory()) {
-                throw new IllegalArgumentException(
-                        "output file parameter points to a directory, must be a file");
+                throw new IllegalArgumentException("output file parameter points to a directory, must be a file");
             }
             else if (f.exists() && !f.canWrite()) {
                 throw new IllegalArgumentException(
