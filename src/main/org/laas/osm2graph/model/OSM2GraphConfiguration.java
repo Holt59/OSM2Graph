@@ -25,7 +25,6 @@ import org.laas.osm2graph.writers.GraphWriterFactory;
  */
 public class OSM2GraphConfiguration {
 
-    private BoundingBox bboxConfiguration;
     private File outputFile;
     private List<String> preferredLanguages;
     private String writerVersion;
@@ -33,18 +32,6 @@ public class OSM2GraphConfiguration {
     private int threads;
 
     private int mapId = -1;
-
-    /**
-     * Convenience method.
-     *
-     * @param bbox the bounding box specification in format minLat, minLon, maxLat,
-     *        maxLon in exactly this order as degrees
-     */
-    public void addBboxConfiguration(String bbox) {
-        if (bbox != null) {
-            setBboxConfiguration(BoundingBox.fromString(bbox));
-        }
-    }
 
     /**
      * Convenience method - The writer should be set before calling this method so
@@ -98,13 +85,6 @@ public class OSM2GraphConfiguration {
     }
 
     /**
-     * @return the bboxConfiguration
-     */
-    public BoundingBox getBboxConfiguration() {
-        return this.bboxConfiguration;
-    }
-
-    /**
      * @return the outputFile
      */
     public File getOutputFile() {
@@ -144,13 +124,6 @@ public class OSM2GraphConfiguration {
      */
     public String getWriterVersion() {
         return this.writerVersion;
-    }
-
-    /**
-     * @param bboxConfiguration the bboxConfiguration to set
-     */
-    public void setBboxConfiguration(BoundingBox bboxConfiguration) {
-        this.bboxConfiguration = bboxConfiguration;
     }
 
     /**

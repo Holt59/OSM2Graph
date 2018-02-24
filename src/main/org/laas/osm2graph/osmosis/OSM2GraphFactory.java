@@ -15,7 +15,6 @@ public class OSM2GraphFactory extends TaskManagerFactory {
      */
     public static final String DEFAULT_PARAM_OUTFILE = "mapsforge.map";
 
-    private static final String PARAM_BBOX = "bbox";
     private static final String PARAM_OUTFILE = "file";
     private static final String PARAM_PREFERRED_LANGUAGES = "preferred-languages";
     private static final String PARAM_THREADS = "threads";
@@ -42,13 +41,9 @@ public class OSM2GraphFactory extends TaskManagerFactory {
     @Override
     protected TaskManager createTaskManagerImpl(TaskConfiguration taskConfig) {
         OSM2GraphConfiguration configuration = new OSM2GraphConfiguration();
-        configuration.addGraphWriter(
-                getStringArgument(taskConfig, PARAM_WRITER, GraphWriterFactory.DEFAULT_WRITER));
-        configuration.addOutputFile(
-                getStringArgument(taskConfig, PARAM_OUTFILE, Constants.DEFAULT_PARAM_OUTFILE));
-        configuration.addBboxConfiguration(getStringArgument(taskConfig, PARAM_BBOX, null));
-        configuration.addPreferredLanguages(
-                getStringArgument(taskConfig, PARAM_PREFERRED_LANGUAGES, null));
+        configuration.addGraphWriter(getStringArgument(taskConfig, PARAM_WRITER, GraphWriterFactory.DEFAULT_WRITER));
+        configuration.addOutputFile(getStringArgument(taskConfig, PARAM_OUTFILE, Constants.DEFAULT_PARAM_OUTFILE));
+        configuration.addPreferredLanguages(getStringArgument(taskConfig, PARAM_PREFERRED_LANGUAGES, null));
         configuration.setMapId(parseMapId(getStringArgument(taskConfig, PARAM_MAPID)));
         configuration.setThreads(getIntegerArgument(taskConfig, PARAM_THREADS, 1));
 
