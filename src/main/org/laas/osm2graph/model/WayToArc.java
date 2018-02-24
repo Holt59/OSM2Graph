@@ -47,11 +47,17 @@ public class WayToArc {
         RoadType roadtype = null;
         while (itTag.hasNext() && roadtype == null) {
             Tag tag = itTag.next();
-            if (tag.getKey().equals("highway")) {
-                roadtype = RoadType.valueOf(tag.getValue().toUpperCase());
-            }
-            else if (tag.getKey().equals("natural") && tag.getValue().equals("coastline")) {
+            if (tag.getKey().equals("natural") && tag.getValue().equals("coastline")) {
                 roadtype = RoadType.COASTLINE;
+            }
+            else if (tag.getKey().equals("highway")) {
+                try {
+                    roadtype = RoadType.valueOf(tag.getValue().toUpperCase());
+                }
+                catch (IllegalArgumentException e) {
+                    LOGGER.severe("Unrecognized road type: highway=" + tag.getValue());
+                    roadtype = RoadType.UNCLASSIFIED;
+                }
             }
         }
         return roadtype;
@@ -164,8 +170,8 @@ public class WayToArc {
 
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
             RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed) {
+            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay) && ri.getType().equals(roadType)
+                    && ri.getMaximumSpeed() == maxSpeed) {
                 roadinfo = ri;
             }
         }
