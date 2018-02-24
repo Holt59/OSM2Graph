@@ -3,19 +3,76 @@ package org.laas.osm2graph.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.laas.osm2graph.graph.RoadInformation.RoadType;
+
+/**
+ * This class contains speed data extracted from OpenStreetMap website.
+ * 
+ * @author Mikael
+ *
+ */
 public class SpeedData {
 
     //
     private static final Map<String, Integer> SPEED_FOR_COUNTRIES = new HashMap<String, Integer>();
 
     /**
-     * @param code
-     * @param zonetype
-     * @return The speed limits for the given code and zontype, or -1 if it was not
-     * found.
+     * Fetch the speed for the given code in the static table. If the code is not
+     * found, return defaultSpeed.
+     * 
+     * @param code Code to fetch.
+     * @param defaultSpeed Default speed to return if their is no speed associated
+     *        to the given code.
+     * 
+     * @return The speed limits for the given code, or defaultSpeed if it was not
+     *         found.
      */
-    public static int speedForCountryAndType(String code) {
-        return SPEED_FOR_COUNTRIES.getOrDefault(code, -1);
+    public static int speedForCode(String code, int defaultSpeed) {
+        return SPEED_FOR_COUNTRIES.getOrDefault(code, defaultSpeed);
+    }
+
+    /**
+     * Get the maximum speed for the given road type.
+     * 
+     * @param roadtype
+     * @param defaultSpeed Default speed to return if roadtype is null or does not
+     *        have an associated maximum speed.
+     * 
+     * @return Maximum speed for the given road type, or defaultSpeed is none
+     *         exists.
+     */
+    public static int maxSpeedForRoadType(RoadType roadtype, int defaultSpeed) {
+        // Handle null value...
+        if (roadtype == null) {
+            return defaultSpeed;
+        }
+
+        // Handle normal value
+        switch (roadtype) {
+        case MOTORWAY:
+        case MOTORWAY_LINK:
+            return 130;
+        case TRUNK:
+        case TRUNK_LINK:
+            return 110;
+        case PRIMARY:
+        case PRIMARY_LINK:
+        case SECONDARY:
+        case SECONDARY_LINK:
+        case UNCLASSIFIED:
+        case ROAD:
+            return 90;
+        case TERTIARY:
+        case RESIDENTIAL:
+            return 50;
+        case SERVICE:
+        case ROUNDABOUT:
+        case LIVING_STREET:
+            return 20;
+        case COASTLINE:
+        default:
+            return defaultSpeed;
+        }
     }
 
     static {

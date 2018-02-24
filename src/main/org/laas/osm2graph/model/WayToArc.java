@@ -36,11 +36,26 @@ public class WayToArc {
     // Mapping road name -> Road informations
     protected final ArrayList<RoadInformation> roadinfos;
 
+    /**
+     * @param vertices
+     */
     public WayToArc(Map<Long, Vertex> vertices) {
         this.vertices = vertices;
         this.roadinfos = new ArrayList<RoadInformation>();
     }
 
+    /**
+     * Find the road type associated with the given way by looking at its highway or
+     * natural tag. Way should have been filtered prior to avoid having wrong
+     * "highway" value without a natural tag.
+     * 
+     * Check RoadInformation.RoadType for the list of allowed highway value. If a
+     * way has a tag "natural=coastline", the highway tag is discarded.
+     * 
+     * @param way
+     * 
+     * @return Road type associated to the given way, or null if none was found.
+     */
     private RoadType getRoadType(Way way) {
         Collection<Tag> tags = way.getTags();
         Iterator<Tag> itTag = tags.iterator();
@@ -63,41 +78,19 @@ public class WayToArc {
         return roadtype;
     }
 
-    private int maxSpeedForRoadType(RoadType roadtype) {
-        switch (roadtype) {
-        case MOTORWAY:
-        case MOTORWAY_LINK:
-            return 130;
-        case TRUNK:
-        case TRUNK_LINK:
-            return 110;
-        case PRIMARY:
-        case PRIMARY_LINK:
-        case SECONDARY:
-        case SECONDARY_LINK:
-        case UNCLASSIFIED:
-        case ROAD:
-            return 90;
-        case TERTIARY:
-        case RESIDENTIAL:
-            return 50;
-        case SERVICE:
-        case ROUNDABOUT:
-        case LIVING_STREET:
-            return 20;
-        case COASTLINE:
-        default:
-            return 0;
-        }
-    }
-
+    /**
+     * Try to infer the maximum speed from the given string (which should come from
+     * a "maxspeed" tag), and use the given road type as a fallback.
+     * 
+     * @param maxspeed Value of a "maxspeed" tag, or null.
+     * @param roadtype Road type to infer speed if "maxspeed" was not sufficient.
+     * 
+     * @return Maximum speed in kmph.
+     */
     private int getMaximumSpeed(String maxspeed, RoadType roadtype) {
+        final int defaultSpeed = SpeedData.maxSpeedForRoadType(roadtype, DEFAULT_MAXIMUM_SPEED);
         if (maxspeed == null || maxspeed.equals("none") || maxspeed.equals("signal")) {
-            if (roadtype == null) {
-                // Something is wrong here...
-                return DEFAULT_MAXIMUM_SPEED;
-            }
-            return maxSpeedForRoadType(roadtype);
+            return defaultSpeed;
         }
         if (maxspeed.equals("walk")) {
             return DEFAULT_WALK_SPEED;
@@ -105,10 +98,7 @@ public class WayToArc {
         int speed = DEFAULT_MAXIMUM_SPEED;
         if (maxspeed.contains(":")) {
             // Implicit speed
-            speed = SpeedData.speedForCountryAndType(maxspeed);
-            if (speed == -1) {
-                speed = roadtype != null ? maxSpeedForRoadType(roadtype) : DEFAULT_MAXIMUM_SPEED;
-            }
+            speed = SpeedData.speedForCode(maxspeed, defaultSpeed);
         }
         else {
             // Numeric speed
@@ -117,7 +107,7 @@ public class WayToArc {
                 speed = Integer.valueOf(parts[0]);
             }
             catch (NumberFormatException exception) {
-                speed = roadtype != null ? maxSpeedForRoadType(roadtype) : DEFAULT_MAXIMUM_SPEED;
+                speed = defaultSpeed;
             }
 
             if (parts.length == 1) {
@@ -141,7 +131,7 @@ public class WayToArc {
      * 
      * @param way
      * 
-     * @return
+     * @return Existing or new RoadInformation for the given way.
      */
     private RoadInformation getOrCreateRoadInformation(Way way) {
         Collection<Tag> tags = way.getTags();
@@ -186,10 +176,11 @@ public class WayToArc {
 
     /**
      * Create and return a map (NodeID -> Boolean) indicating which node correspond
-     * to a vertex in the graph. A vertex is either a node at the beginning or end
-     * of a way, or a node used by multiple ways.
+     * to a vertex in the graph. A node is considered a vertex if it is the first or
+     * last node of a way, or if it is used by two different ways.
      * 
      * @param ways
+     * 
      * @return
      */
     protected Map<Long, Boolean> findVertex(List<Way> ways) {
@@ -212,8 +203,12 @@ public class WayToArc {
     }
 
     /**
-     * @param way
-     * @return
+     * Convert a way into a list of arcs - A way might be split if one of its node
+     * is shared with another way (in which case this node becomes a vertex).
+     * 
+     * @param way Way to convert.
+     * 
+     * @return List of arcs corresponding to the given way.
      */
     protected ArrayList<Arc> convert(Way way) {
 
@@ -247,6 +242,13 @@ public class WayToArc {
         return arcs;
     }
 
+    /**
+     * Convert the given list of ways into a list of arcs.
+     * 
+     * @param ways List of ways to convert.
+     * 
+     * @return List of arcs created from the ways.
+     */
     public ArrayList<Arc> convert(List<Way> ways) {
         // Find vertex...
         LOGGER.info("finding vertices inside ways... ");
