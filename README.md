@@ -10,7 +10,7 @@ directory of `osmosis`.
 ```bash
 bin/osmosis --rb input_map.osm.pbf \ 
             --tf reject-relations \
-            --tf accept-ways highway=$(cat resources/highway-filter.cmd) natural=coastline \
+            --tf accept-ways highway=$(cat resources/highway-filter.cmd) natural=coastline junction=roundabout \
             --used-node \
             --osm2graph file=output_map.mapgr writer=insa2018 map-id=0x200
 ```
