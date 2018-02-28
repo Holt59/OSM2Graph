@@ -5,6 +5,9 @@ import java.util.List;
 
 public class Arc {
 
+    // Id of this arc
+    private final int id;
+
     // Destination node.
     private final Vertex origin, destination;
 
@@ -26,13 +29,22 @@ public class Arc {
      * @param roadInformation Road information for this arc.
      * @param list Points representing this arc.
      */
-    public Arc(Vertex origin, Vertex dest, int length, RoadInformation roadInformation, List<Point> list) {
+    public Arc(int id, Vertex origin, Vertex dest, int length, RoadInformation roadInformation,
+            List<Point> list) {
+        this.id = id;
         this.origin = origin;
         this.destination = dest;
         this.length = length;
         this.info = roadInformation;
         this.points = list;
         origin.addSuccessor(this);
+    }
+
+    /**
+     * @return Id of this arc.
+     */
+    public int getId() {
+        return id;
     }
 
     /**

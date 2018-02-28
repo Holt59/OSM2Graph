@@ -105,8 +105,8 @@ public class OSM2GraphTask implements Sink {
                 nodes.add(oldDestination);
                 vertices.put(destinationId, oldDestination);
             }
-            new Arc(vertices.get(originId), vertices.get(destinationId), arc.getLength(),
-                    arc.getInfo(), arc.getPoints());
+            new Arc(arc.getId(), vertices.get(originId), vertices.get(destinationId),
+                    arc.getLength(), arc.getInfo(), arc.getPoints());
 
             // Hint to GC
             arcs.set(i, null);

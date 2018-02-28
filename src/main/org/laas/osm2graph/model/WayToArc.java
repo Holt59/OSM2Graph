@@ -1,7 +1,7 @@
 package org.laas.osm2graph.model;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +26,10 @@ public class WayToArc {
 
     // Default walk speed
     private final static int DEFAULT_WALK_SPEED = 5;
+
+    // Tags to keep:
+    private final static List<String> USEFUL_TAGS = Arrays.asList(
+            new String[]{ "highway", "natural", "junction", "maxspeed", "oneway", "access" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -52,32 +56,35 @@ public class WayToArc {
      * Check RoadInformation.RoadType for the list of allowed highway value. If a
      * way has a tag "natural=coastline", the highway tag is discarded.
      * 
-     * @param way
+     * @param tags Map of key -> value tags.
      * 
      * @return Road type associated to the given way, or null if none was found.
      */
-    private RoadType getRoadType(Way way) {
-        Collection<Tag> tags = way.getTags();
-        Iterator<Tag> itTag = tags.iterator();
-        RoadType roadtype = null;
-        while (itTag.hasNext() && roadtype == null) {
-            Tag tag = itTag.next();
-            if (tag.getKey().equals("natural") && tag.getValue().equals("coastline")) {
-                roadtype = RoadType.COASTLINE;
-            }
-            else if (tag.getKey().equals("junction") && tag.getValue().equals("roundabout")) {
-                roadtype = RoadType.ROUNDABOUT;
-            }
-            else if (tag.getKey().equals("highway")) {
-                try {
-                    roadtype = RoadType.valueOf(tag.getValue().toUpperCase());
-                }
-                catch (IllegalArgumentException e) {
-                    LOGGER.severe("Unrecognized road type: highway=" + tag.getValue());
-                    roadtype = RoadType.UNCLASSIFIED;
-                }
-            }
+    private RoadType getRoadType(Map<String, String> tags) {
+
+        // natural=coastline -> Coastline
+        if (tags.getOrDefault("natural", "").toLowerCase().equals("coastline")) {
+            return RoadType.COASTLINE;
         }
+
+        // junction=roundabout -> Roundabout
+        if (tags.getOrDefault("junction", "").toLowerCase().equals("roundabout")) {
+            return RoadType.ROUNDABOUT;
+        }
+
+        if (!tags.containsKey("highway")) {
+            return RoadType.UNCLASSIFIED;
+        }
+
+        RoadType roadtype = null;
+        try {
+            roadtype = RoadType.valueOf(tags.get("highway").toUpperCase());
+        }
+        catch (IllegalArgumentException e) {
+            LOGGER.severe("Unrecognized road type: highway=" + tags.get("highway"));
+            roadtype = RoadType.UNCLASSIFIED;
+        }
+
         return roadtype;
     }
 
@@ -90,9 +97,14 @@ public class WayToArc {
      * 
      * @return Maximum speed in kmph.
      */
-    private int getMaximumSpeed(String maxspeed, RoadType roadtype) {
+    private int getMaximumSpeed(Map<String, String> tags, RoadType roadtype) {
+        String maxspeed = tags.getOrDefault("maxspeed", null);
         final int defaultSpeed = SpeedData.maxSpeedForRoadType(roadtype, DEFAULT_MAXIMUM_SPEED);
-        if (maxspeed == null || maxspeed.equals("none") || maxspeed.equals("signal")) {
+        if (maxspeed == null) {
+            return defaultSpeed;
+        }
+        maxspeed = maxspeed.toLowerCase();
+        if (maxspeed.equals("none") || maxspeed.equals("signal")) {
             return defaultSpeed;
         }
         if (maxspeed.equals("walk")) {
@@ -137,9 +149,11 @@ public class WayToArc {
      * 
      * @return
      */
-    public boolean getOneWay(String sOneWay, RoadType roadType) {
+    public boolean getOneWay(Map<String, String> tags, RoadType roadType) {
+        String sOneWay = tags.getOrDefault("oneway", null);
         if (sOneWay != null) {
-            return sOneWay.equals("yes");
+            sOneWay = sOneWay.toLowerCase();
+            return sOneWay.equals("yes") || sOneWay.equals("true") || sOneWay.equals("1");
         }
         if (roadType != null && (roadType == RoadType.MOTORWAY || roadType == RoadType.MOTORWAY_LINK
                 || roadType == RoadType.TRUNK_LINK || roadType == RoadType.PRIMARY_LINK
@@ -158,29 +172,20 @@ public class WayToArc {
      * @return Existing or new RoadInformation for the given way.
      */
     private RoadInformation getOrCreateRoadInformation(Way way) {
-        Collection<Tag> tags = way.getTags();
 
-        String name = "";
-        RoadType roadType = null;
-        String sOneWay = null;
-        String sMaxSpeed = null;
+        Map<String, String> tags = new HashMap<>();
 
-        for (Tag tag: tags) {
-            if (tag.getKey().equals("name")) {
-                name = tag.getValue();
-            }
-            if (tag.getKey().equals("oneway")) {
-                sOneWay = tag.getValue();
-            }
-            if (tag.getKey().equals("maxspeed")) {
-                sMaxSpeed = tag.getValue();
+        for (Tag tag: way.getTags()) {
+            if (USEFUL_TAGS.contains((String) tag.getKey())) {
+                tags.put(tag.getKey(), tag.getValue());
             }
         }
 
-        roadType = getRoadType(way);
-        int maxSpeed = getMaximumSpeed(sMaxSpeed, roadType);
+        RoadType roadType = getRoadType(tags);
+        int maxSpeed = getMaximumSpeed(tags, roadType);
+        boolean oneWay = getOneWay(tags, roadType);
 
-        boolean oneWay = getOneWay(sOneWay, roadType);
+        String name = tags.getOrDefault("name", "");
 
         RoadInformation roadinfo = null;
 
@@ -258,13 +263,16 @@ public class WayToArc {
             points.add(newPoint);
 
             if (this.nodeMarks.get(nodeId)) {
-                arcs.add(new Arc(origin, vertices.get(nodeId), (int) length, roadinfo, points));
+                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo,
+                        points));
+
                 length = 0;
                 points = new ArrayList<Point>();
                 origin = vertices.get(nodeId);
                 points.add(origin.getPoint());
             }
         }
+
         return arcs;
     }
 
@@ -295,6 +303,13 @@ public class WayToArc {
                 LOGGER.info("processed " + (i + 1) + " out of " + ways.size() + " ways");
             }
         }
+
+        for (Arc arc: arcs) {
+            if (arc.getLength() > 1 << 16 - 1) {
+                LOGGER.info("Too long arc: " + arc.getLength());
+            }
+        }
+
         return arcs;
     }
 

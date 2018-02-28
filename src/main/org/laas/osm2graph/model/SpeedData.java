@@ -22,10 +22,10 @@ public class SpeedData {
      * 
      * @param code Code to fetch.
      * @param defaultSpeed Default speed to return if their is no speed associated
-     *        to the given code.
+     * to the given code.
      * 
      * @return The speed limits for the given code, or defaultSpeed if it was not
-     *         found.
+     * found.
      */
     public static int speedForCode(String code, int defaultSpeed) {
         return SPEED_FOR_COUNTRIES.getOrDefault(code, defaultSpeed);
@@ -36,10 +36,10 @@ public class SpeedData {
      * 
      * @param roadtype
      * @param defaultSpeed Default speed to return if roadtype is null or does not
-     *        have an associated maximum speed.
+     * have an associated maximum speed.
      * 
      * @return Maximum speed for the given road type, or defaultSpeed is none
-     *         exists.
+     * exists.
      */
     public static int maxSpeedForRoadType(RoadType roadtype, int defaultSpeed) {
         // Handle null value...
@@ -50,29 +50,31 @@ public class SpeedData {
         // Handle normal value
         switch (roadtype) {
         case MOTORWAY:
-        case MOTORWAY_LINK:
             return 130;
         case TRUNK:
-        case TRUNK_LINK:
             return 110;
         case PRIMARY:
-        case PRIMARY_LINK:
-        case SECONDARY:
-        case SECONDARY_LINK:
-        case UNCLASSIFIED:
-        case ROAD:
             return 90;
+        case SECONDARY:
+            return 70;
+        case PRIMARY_LINK:
+        case SECONDARY_LINK:
+        case MOTORWAY_LINK:
+        case TRUNK_LINK:
         case TERTIARY:
-        case RESIDENTIAL:
             return 50;
+        case RESIDENTIAL:
         case SERVICE:
+        case ROAD:
         case ROUNDABOUT:
         case LIVING_STREET:
-            return 20;
+        case UNCLASSIFIED:
+            return 30;
         case COASTLINE:
-        default:
-            return defaultSpeed;
+            return 0;
         }
+
+        return 0;
     }
 
     static {
