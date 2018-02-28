@@ -9,10 +9,10 @@ directory of `osmosis`.
 
 ```bash
 bin/osmosis --rb input_map.osm.pbf \ 
-			--tf reject-relations \
-			--tf accept-ways highway=$(cat resources/highway-filter.cmd) natural=coastline \
-			--used-node \
-			--osm2graph file=output_map.mapgr writer=insa2018 map-id=0x200
+            --tf reject-relations \
+            --tf accept-ways highway=$(cat resources/highway-filter.cmd) natural=coastline \
+            --used-node \
+            --osm2graph file=output_map.mapgr writer=insa2018 map-id=0x200
 ```
 
 You can use any input mode for `osmosis` (pbf, xml, mysql, ...). The `--tf reject-relations` and `--used-node` options
