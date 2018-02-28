@@ -65,6 +65,9 @@ public class WayToArc {
             if (tag.getKey().equals("natural") && tag.getValue().equals("coastline")) {
                 roadtype = RoadType.COASTLINE;
             }
+            else if (tag.getKey().equals("junction") && tag.getValue().equals("roundabout")) {
+                roadtype = RoadType.ROUNDABOUT;
+            }
             else if (tag.getKey().equals("highway")) {
                 try {
                     roadtype = RoadType.valueOf(tag.getValue().toUpperCase());
@@ -126,6 +129,27 @@ public class WayToArc {
     }
 
     /**
+     * Retrieve one way information from the given tag value. If sOneWay is null,
+     * retrieve it from roadType, otherwize return false.
+     * 
+     * @param sOneWay
+     * @param roadType
+     * 
+     * @return
+     */
+    public boolean getOneWay(String sOneWay, RoadType roadType) {
+        if (sOneWay != null) {
+            return sOneWay.equals("yes");
+        }
+        if (roadType != null && (roadType == RoadType.MOTORWAY || roadType == RoadType.MOTORWAY_LINK
+                || roadType == RoadType.TRUNK_LINK || roadType == RoadType.PRIMARY_LINK
+                || roadType == RoadType.ROUNDABOUT)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Try to find a matching road information inside roadinfos. If none is found, a
      * new one is created and returned.
      * 
@@ -138,7 +162,7 @@ public class WayToArc {
 
         String name = "";
         RoadType roadType = null;
-        boolean oneWay = false;
+        String sOneWay = null;
         String sMaxSpeed = null;
 
         for (Tag tag: tags) {
@@ -146,7 +170,7 @@ public class WayToArc {
                 name = tag.getValue();
             }
             if (tag.getKey().equals("oneway")) {
-                oneWay = tag.getValue().equals("yes");
+                sOneWay = tag.getValue();
             }
             if (tag.getKey().equals("maxspeed")) {
                 sMaxSpeed = tag.getValue();
@@ -156,12 +180,14 @@ public class WayToArc {
         roadType = getRoadType(way);
         int maxSpeed = getMaximumSpeed(sMaxSpeed, roadType);
 
+        boolean oneWay = getOneWay(sOneWay, roadType);
+
         RoadInformation roadinfo = null;
 
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
             RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay) && ri.getType().equals(roadType)
-                    && ri.getMaximumSpeed() == maxSpeed) {
+            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
+                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed) {
                 roadinfo = ri;
             }
         }
