@@ -28,8 +28,8 @@ public class WayToArc {
     private final static int DEFAULT_WALK_SPEED = 5;
 
     // Tags to keep:
-    private final static List<String> USEFUL_TAGS = Arrays.asList(
-            new String[]{ "highway", "natural", "junction", "maxspeed", "oneway", "access" });
+    private final static List<String> USEFUL_TAGS = Arrays
+            .asList(new String[]{ "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -86,6 +86,49 @@ public class WayToArc {
         }
 
         return roadtype;
+    }
+
+    /**
+     * Get access type associated with the given tags.
+     * 
+     * @param tags
+     */
+    private short getAccessType(Map<String, String> tags, RoadType roadType) {
+
+        int access = 0;
+        for (int i = 0; i < AccessData.USEFUL_TAGS.size(); ++i) {
+            String key = AccessData.USEFUL_TAGS.get(i);
+            if (tags.containsKey(key)) {
+                String value = tags.get(key).toLowerCase();
+
+                // If authorized
+                if (!value.equals("no") && !value.equals("false") && !value.equals("0")) {
+                    access = access | (AccessData.KEY_MASK[i] << 8);
+                }
+
+                // Check the actual value...
+                if (key.equals("access")
+                        && (value.equals("yes") || value.equals("true") || value.equals("1"))) {
+                    access = access | AccessData.MASK_ALL;
+                }
+                else if (value.equals("private")) {
+                    // Nothing to do...
+                    access = access | AccessData.MASK_PRIVATE;
+                }
+                else if (value.equals("delivery") || value.equals("customers")) {
+                    access = access | AccessData.MASK_SERVICE;
+                }
+                else if (value.equals("agricultural") || value.equals("forestry")) {
+                    access = access | AccessData.MASK_AGRICULTURAL;
+                }
+            }
+        }
+
+        // Access = 0, try to find access from roadtype
+        if (access == 0) {
+            access = AccessData.accessForRoadType(roadType);
+        }
+        return (short) access;
     }
 
     /**
@@ -149,7 +192,7 @@ public class WayToArc {
      * 
      * @return
      */
-    public boolean getOneWay(Map<String, String> tags, RoadType roadType) {
+    protected boolean getOneWay(Map<String, String> tags, RoadType roadType) {
         String sOneWay = tags.getOrDefault("oneway", null);
         if (sOneWay != null) {
             sOneWay = sOneWay.toLowerCase();
@@ -164,6 +207,16 @@ public class WayToArc {
     }
 
     /**
+     * @param tag
+     * 
+     * @return true if this tag is useful, false otherwize.
+     */
+    protected boolean isUsefulTag(Tag tag) {
+        return USEFUL_TAGS.contains((String) tag.getKey())
+                || AccessData.USEFUL_TAGS.contains((String) tag.getKey());
+    }
+
+    /**
      * Try to find a matching road information inside roadinfos. If none is found, a
      * new one is created and returned.
      * 
@@ -171,12 +224,12 @@ public class WayToArc {
      * 
      * @return Existing or new RoadInformation for the given way.
      */
-    private RoadInformation getOrCreateRoadInformation(Way way) {
+    protected RoadInformation getOrCreateRoadInformation(Way way) {
 
         Map<String, String> tags = new HashMap<>();
 
         for (Tag tag: way.getTags()) {
-            if (USEFUL_TAGS.contains((String) tag.getKey())) {
+            if (isUsefulTag(tag)) {
                 tags.put(tag.getKey(), tag.getValue());
             }
         }
@@ -184,6 +237,7 @@ public class WayToArc {
         RoadType roadType = getRoadType(tags);
         int maxSpeed = getMaximumSpeed(tags, roadType);
         boolean oneWay = getOneWay(tags, roadType);
+        int access = getAccessType(tags, roadType);
 
         String name = tags.getOrDefault("name", "");
 
@@ -192,13 +246,14 @@ public class WayToArc {
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
             RoadInformation ri = roadinfos.get(i);
             if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed) {
+                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
+                    && ri.getAccess() == access) {
                 roadinfo = ri;
             }
         }
 
         if (roadinfo == null) {
-            roadinfo = new RoadInformation(roadType, oneWay, maxSpeed, name);
+            roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
             roadinfos.add(roadinfo);
         }
 

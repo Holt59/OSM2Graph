@@ -154,6 +154,7 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 x = x | 0x80;
             }
             dos.writeByte(x);
+            dos.writeShort((short) info.getAccess());
             dos.writeUTF(info.getName());
         }
 
@@ -178,8 +179,10 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 dos.writeShort(points.size() - 2);
 
                 for (int i = 1; i < points.size() - 1; ++i) {
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
                 }
             }
         }
