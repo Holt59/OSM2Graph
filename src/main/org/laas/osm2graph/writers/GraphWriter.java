@@ -8,6 +8,11 @@ import org.laas.osm2graph.model.OSM2GraphConfiguration;
 
 public interface GraphWriter {
 
+    /**
+     * Set the output stream for this writer.
+     * 
+     * @param stream
+     */
     public void setOutputStream(OutputStream stream);
 
     /**
