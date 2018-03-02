@@ -3,6 +3,8 @@ package org.laas.osm2graph.writers;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import org.laas.osm2graph.graph.Point;
 import org.laas.osm2graph.graph.RoadInformation;
 import org.laas.osm2graph.graph.RoadInformation.RoadType;
 import org.laas.osm2graph.graph.Vertex;
+import org.laas.osm2graph.model.OSM2GraphConfiguration;
 
 /**
  * This writer generates files that are used for practice session at INSA of
@@ -28,6 +31,8 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
     private static final int MAGIC_NUMBER = 0x208BC3B3;
 
     private static final String DEFAULT_EXTENSION = "mapgr";
+
+    private static final int MAP_ID_FIELD_LENGTH = 32;
 
     /**
      * Convert a character to its corresponding road type.
@@ -121,7 +126,8 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
         dos.writeInt(MAGIC_NUMBER);
         dos.writeInt(VERSION);
 
-        dos.writeInt(graph.getMapId());
+        dos.write(Arrays.copyOf(graph.getMapId().getBytes("UTF-8"), MAP_ID_FIELD_LENGTH));
+        dos.writeUTF(graph.getMapName());
 
         List<Vertex> nodes = graph.getNodes();
         IdentityHashMap<RoadInformation, Integer> infos = getRoadInformations(nodes);
@@ -179,10 +185,8 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 dos.writeShort(points.size() - 2);
 
                 for (int i = 1; i < points.size() - 1; ++i) {
-                    dos.writeShort((int) (2.e5
-                            * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
-                    dos.writeShort((int) (2.e5
-                            * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
+                    dos.writeShort((int) (2.e5 * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
+                    dos.writeShort((int) (2.e5 * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
                 }
             }
         }
@@ -196,6 +200,25 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
 
     public String getDefaultExtension() {
         return DEFAULT_EXTENSION;
+    }
+
+    @Override
+    public void validate(OSM2GraphConfiguration configuration) throws IllegalArgumentException {
+        byte[] bytes = null;
+        try {
+            bytes = configuration.getMapId().getBytes("UTF-8");
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException("Cannot encode the specified ID using UTF-8.");
+        }
+        if (bytes.length > MAP_ID_FIELD_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Specified ID is too long, ID must be less than " + MAP_ID_FIELD_LENGTH + " bytes long in UTF-8.");
+        }
+
+        if (configuration.getMapName() == null) {
+            throw new IllegalArgumentException("A map name must be specified in order to use this writer.");
+        }
     }
 
 }

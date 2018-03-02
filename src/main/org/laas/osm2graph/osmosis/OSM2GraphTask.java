@@ -63,6 +63,7 @@ public class OSM2GraphTask implements Sink {
 
     /*
      * (non-Javadoc)
+     * 
      * @see
      * org.openstreetmap.osmosis.core.task.v0_6.Initializable#initialize(java.util.
      * Map)
@@ -105,8 +106,8 @@ public class OSM2GraphTask implements Sink {
                 nodes.add(oldDestination);
                 vertices.put(destinationId, oldDestination);
             }
-            new Arc(arc.getId(), vertices.get(originId), vertices.get(destinationId),
-                    arc.getLength(), arc.getInfo(), arc.getPoints());
+            new Arc(arc.getId(), vertices.get(originId), vertices.get(destinationId), arc.getLength(), arc.getInfo(),
+                    arc.getPoints());
 
             // Hint to GC
             arcs.set(i, null);
@@ -119,21 +120,19 @@ public class OSM2GraphTask implements Sink {
             }
         });
 
-        LOGGER.info("Created " + arcs.size() + " arcs out of " + amountOfWaysProcessed + " ways "
-                + "and " + nodes.size() + " vertex out of " + amountOfNodesProcessed + " nodes.");
+        LOGGER.info("Created " + arcs.size() + " arcs out of " + amountOfWaysProcessed + " ways " + "and "
+                + nodes.size() + " vertex out of " + amountOfNodesProcessed + " nodes.");
 
         LOGGER.info("start writing file...");
 
         try {
-            Graph graph = new Graph(this.configuration.getMapId(), nodes);
+            Graph graph = new Graph(this.configuration.getMapId(), this.configuration.getMapName(), nodes);
             if (this.configuration.getOutputFile().exists()) {
-                LOGGER.info(
-                        "overwriting file " + this.configuration.getOutputFile().getAbsolutePath());
+                LOGGER.info("overwriting file " + this.configuration.getOutputFile().getAbsolutePath());
                 this.configuration.getOutputFile().delete();
             }
             GraphWriter writer = this.configuration.getGraphWriter();
-            writer.setOutputStream(new BufferedOutputStream(
-                    new FileOutputStream(this.configuration.getOutputFile())));
+            writer.setOutputStream(new BufferedOutputStream(new FileOutputStream(this.configuration.getOutputFile())));
             writer.writeGraph(graph);
         }
         catch (IOException e) {
@@ -144,9 +143,9 @@ public class OSM2GraphTask implements Sink {
         LOGGER.fine("total processed nodes: " + nfCounts.format(this.amountOfNodesProcessed));
         LOGGER.fine("total processed ways: " + nfCounts.format(this.amountOfWaysProcessed));
 
-        LOGGER.info("estimated memory consumption: " + nfMegabyte
-                .format(+((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())
-                        / Math.pow(1024, 2)))
+        LOGGER.info("estimated memory consumption: "
+                + nfMegabyte.format(
+                        +((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Math.pow(1024, 2)))
                 + "MB");
     }
 

@@ -6,17 +6,22 @@ import java.util.List;
 public class Graph {
 
     // Map identifier.
-    private final int mapId;
+    private final String mapId;
+
+    // Map name
+    private final String mapName;
 
     // Nodes of the graph.
     private final List<Vertex> nodes;
 
     /**
      * @param mapId ID of this graph.
+     * @param name Name of the graph.
      * @param list List of nodes for this graph.
      */
-    public Graph(int mapId, List<Vertex> list) {
+    public Graph(String mapId, String mapName, List<Vertex> list) {
         this.mapId = mapId;
+        this.mapName = mapName;
         this.nodes = list;
     }
 
@@ -50,16 +55,15 @@ public class Graph {
     /**
      * @return Map ID of this graph.
      */
-    public int getMapId() {
+    public String getMapId() {
         return mapId;
     }
 
     /**
-     * @return Return the transpose graph of this graph.
+     * @return Map ID of this graph.
      */
-    public Graph transpose() {
-        // TODO:
-        return null;
+    public String getMapName() {
+        return mapName;
     }
 
 }

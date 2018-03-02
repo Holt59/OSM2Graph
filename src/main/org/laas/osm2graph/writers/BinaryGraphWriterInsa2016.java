@@ -13,6 +13,7 @@ import org.laas.osm2graph.graph.Point;
 import org.laas.osm2graph.graph.RoadInformation;
 import org.laas.osm2graph.graph.RoadInformation.RoadType;
 import org.laas.osm2graph.graph.Vertex;
+import org.laas.osm2graph.model.OSM2GraphConfiguration;
 
 /**
  * This writer generates files that were used for practice session at INSA of
@@ -124,7 +125,7 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
         dos.writeInt(MAGIC_NUMBER);
         dos.writeInt(VERSION);
 
-        dos.writeInt(graph.getMapId());
+        dos.writeInt(parseMapId(graph.getMapId()));
         dos.writeInt(DEFAULT_ZONE);
 
         List<Vertex> nodes = graph.getNodes();
@@ -200,5 +201,35 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
 
     public String getDefaultExtension() {
         return DEFAULT_EXTENSION;
+    }
+
+    protected int parseMapId(String mapId) {
+        int radix = 10;
+        if (mapId.startsWith("0x")) {
+            radix = 16;
+            mapId = mapId.substring(2);
+        }
+        else if (mapId.startsWith("0b")) {
+            radix = 2;
+            mapId = mapId.substring(2);
+        }
+        else if (mapId.startsWith("0")) {
+            radix = 8;
+            mapId = mapId.substring(1);
+        }
+        return Integer.parseUnsignedInt(mapId, radix);
+    }
+
+    @Override
+    public void validate(OSM2GraphConfiguration configuration) throws IllegalArgumentException {
+        try {
+            parseMapId(configuration.getMapId());
+        }
+        catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Map ID must be an integer for this writer.");
+        }
+        if (configuration.getMapName() != null) {
+            throw new IllegalArgumentException("Cannot specify a map name for this writer.");
+        }
     }
 }
