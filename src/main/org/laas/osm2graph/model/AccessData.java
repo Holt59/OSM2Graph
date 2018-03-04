@@ -39,14 +39,15 @@ public class AccessData {
 
     // @formatter:off
     // These masks indicates which bit should be set for the access value.
-    public static final long MASK_YES = 0x111111111111111L, // *=yes
+    public static final long
             MASK_NO           = 0x0L, // *=no,
+            MASK_YES          = 0x111111111111111L, // *=yes
             MASK_PRIVATE      = 0x222222222222222L, // *=private
             MASK_DESTINATION  = 0x333333333333333L, // *=destination
             MASK_DELIVERY     = 0x444444444444444L, // *=delivery
             MASK_CUSTOMERS    = 0x555555555555555L, // *=customers,
             MASK_FORESTRY     = 0x666666666666666L, // *=forestry,*=agricultural
-            MASK_UNKNOWN = 0xfffffffffffffffL;
+            MASK_UNKNOWN      = 0xfffffffffffffffL;
 
     // These masks indicates which parts of the long should be set for each type of
     // vehicle
