@@ -67,14 +67,18 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
             return 'j';
         case UNCLASSIFIED:
             return 'k';
-        case ROAD:
-            return 'l';
         case LIVING_STREET:
             return 'm';
         case SERVICE:
             return 'n';
         case ROUNDABOUT:
             return 'o';
+        case PEDESTRIAN:
+            return 'p';
+        case BICYCLE:
+            return 'q';
+        case TRACK:
+            return 'r';
         case COASTLINE:
             return 'z';
         }
@@ -160,7 +164,7 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 x = x | 0x80;
             }
             dos.writeByte(x);
-            dos.writeShort((short) info.getAccess());
+            dos.writeLong(info.getAccess());
             dos.writeUTF(info.getName());
         }
 

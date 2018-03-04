@@ -66,8 +66,6 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
             return 'j';
         case UNCLASSIFIED:
             return 'k';
-        case ROAD:
-            return 'l';
         case LIVING_STREET:
             return 'm';
         case SERVICE:
@@ -76,8 +74,9 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
             return 'o';
         case COASTLINE:
             return 'z';
+        default:
+            return 'k';
         }
-        return 'k';
     }
 
     // Data inpout stream
