@@ -37,17 +37,19 @@ public class AccessData {
      * (unsigned/signed... ).
      */
 
+    // @formatter:off
     // These masks indicates which bit should be set for the access value.
     public static final long MASK_YES = 0x111111111111111L, // *=yes
-            MASK_NO = 0x0L, // *=no,
-            MASK_PRIVATE = 0x222222222222222L, // *=private
-            MASK_TARGET = 0x333333333333333L, // *=delivery,destination,customers
-            MASK_FORESTRY = 0x444444444444444L, // *=agricultural,forestry
+            MASK_NO           = 0x0L, // *=no,
+            MASK_PRIVATE      = 0x222222222222222L, // *=private
+            MASK_DESTINATION  = 0x333333333333333L, // *=destination
+            MASK_DELIVERY     = 0x444444444444444L, // *=delivery
+            MASK_CUSTOMERS    = 0x555555555555555L, // *=customers,
+            MASK_FORESTRY     = 0x666666666666666L, // *=forestry,*=agricultural
             MASK_UNKNOWN = 0xfffffffffffffffL;
 
     // These masks indicates which parts of the long should be set for each type of
     // vehicle
-    // @formatter:off
     public static final long 
             MASK_ALL              = 0xfffffffffffffffL, // access=*,
             MASK_FOOT             = 0x00000000000000fL, // foot=*
@@ -93,9 +95,9 @@ public class AccessData {
         KEY_TO_MASK.put("0", MASK_NO);
         KEY_TO_MASK.put("private", MASK_PRIVATE);
         KEY_TO_MASK.put("permissive", MASK_YES);
-        KEY_TO_MASK.put("destination", MASK_TARGET);
-        KEY_TO_MASK.put("delivery", MASK_TARGET);
-        KEY_TO_MASK.put("customers", MASK_TARGET);
+        KEY_TO_MASK.put("destination", MASK_DESTINATION);
+        KEY_TO_MASK.put("delivery", MASK_DELIVERY);
+        KEY_TO_MASK.put("customers", MASK_CUSTOMERS);
         KEY_TO_MASK.put("designated", MASK_YES);
         KEY_TO_MASK.put("use_sidepath", MASK_YES);
         KEY_TO_MASK.put("dismount", MASK_YES);
@@ -135,7 +137,7 @@ public class AccessData {
         case ROUNDABOUT:
             return MASK_ALL & MASK_YES;
         case SERVICE:
-            return MASK_ALL & MASK_TARGET;
+            return MASK_ALL & MASK_YES;
         case TRACK:
             return (MASK_ALL & (~MASK_PUBLIC_TRANSPORT) & (~MASK_HEAVY_GOODS)) & MASK_YES;
         case BICYCLE:
@@ -160,10 +162,10 @@ public class AccessData {
         long access = getDefaultAccessForRoadType(roadType);
 
         for (String key: AccessData.USEFUL_TAGS) {
-            String value = tags.getOrDefault(key, null);
-            if (value == null) {
-                continue; // Nothing to do
+            if (!tags.containsKey(key)) {
+                continue;
             }
+            String value = tags.get(key);
             long maskKey = KEY_TO_MASK.get(key);
             long maskValue = VALUE_TO_MASK.getOrDefault(value.toLowerCase(), MASK_UNKNOWN);
 
