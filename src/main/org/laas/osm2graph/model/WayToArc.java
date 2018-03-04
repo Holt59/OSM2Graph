@@ -99,14 +99,6 @@ public class WayToArc {
 
         String name = tags.getOrDefault("name", "");
 
-        if (name.equals("Passerelle des Herbettes")) {
-            System.out.print(roadType + ", " + Long.toHexString(access));
-            for (Tag tag: way.getTags()) {
-                System.out.print(", " + tag.getKey() + "=" + tag.getValue());
-            }
-            System.out.println();
-        }
-
         RoadInformation roadinfo = null;
 
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {

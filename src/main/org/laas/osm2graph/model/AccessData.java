@@ -88,24 +88,24 @@ public class AccessData {
         KEY_TO_MASK.put("share_taxi", MASK_PUBLIC_TRANSPORT);
 
         // Puts value
-        KEY_TO_MASK.put("yes", MASK_YES);
-        KEY_TO_MASK.put("true", MASK_YES);
-        KEY_TO_MASK.put("1", MASK_YES);
-        KEY_TO_MASK.put("no", MASK_NO);
-        KEY_TO_MASK.put("false", MASK_NO);
-        KEY_TO_MASK.put("0", MASK_NO);
-        KEY_TO_MASK.put("private", MASK_PRIVATE);
-        KEY_TO_MASK.put("permissive", MASK_YES);
-        KEY_TO_MASK.put("destination", MASK_DESTINATION);
-        KEY_TO_MASK.put("delivery", MASK_DELIVERY);
-        KEY_TO_MASK.put("customers", MASK_CUSTOMERS);
-        KEY_TO_MASK.put("designated", MASK_YES);
-        KEY_TO_MASK.put("use_sidepath", MASK_YES);
-        KEY_TO_MASK.put("dismount", MASK_YES);
-        KEY_TO_MASK.put("agricultural", MASK_FORESTRY);
-        KEY_TO_MASK.put("forestry", MASK_FORESTRY);
-        KEY_TO_MASK.put("discouraged", MASK_NO);
-        KEY_TO_MASK.put("unknown", MASK_UNKNOWN);
+        VALUE_TO_MASK.put("yes", MASK_YES);
+        VALUE_TO_MASK.put("true", MASK_YES);
+        VALUE_TO_MASK.put("1", MASK_YES);
+        VALUE_TO_MASK.put("no", MASK_NO);
+        VALUE_TO_MASK.put("false", MASK_NO);
+        VALUE_TO_MASK.put("0", MASK_NO);
+        VALUE_TO_MASK.put("private", MASK_PRIVATE);
+        VALUE_TO_MASK.put("permissive", MASK_YES);
+        VALUE_TO_MASK.put("destination", MASK_DESTINATION);
+        VALUE_TO_MASK.put("delivery", MASK_DELIVERY);
+        VALUE_TO_MASK.put("customers", MASK_CUSTOMERS);
+        VALUE_TO_MASK.put("designated", MASK_YES);
+        VALUE_TO_MASK.put("use_sidepath", MASK_YES);
+        VALUE_TO_MASK.put("dismount", MASK_YES);
+        VALUE_TO_MASK.put("agricultural", MASK_FORESTRY);
+        VALUE_TO_MASK.put("forestry", MASK_FORESTRY);
+        VALUE_TO_MASK.put("discouraged", MASK_NO);
+        VALUE_TO_MASK.put("unknown", MASK_UNKNOWN);
 
     }
 
@@ -169,7 +169,6 @@ public class AccessData {
             String value = tags.get(key);
             long maskKey = KEY_TO_MASK.get(key);
             long maskValue = VALUE_TO_MASK.getOrDefault(value.toLowerCase(), MASK_UNKNOWN);
-
             access = (maskKey & maskValue) | (access & ~maskKey);
         }
 
