@@ -1,6 +1,7 @@
 package org.laas.osm2graph.model;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,50 @@ public class AccessData {
             MASK_PUBLIC_TRANSPORT = 0x0000f0000000000L; // psv,bus,minibus,share_taxi=*
     // @formatter:on
 
+    // Map key / value with their mask
+    private static final Map<String, Long> KEY_TO_MASK = new HashMap<>();
+    private static final Map<String, Long> VALUE_TO_MASK = new HashMap<>();
+
+    static {
+        // Puts keys
+        KEY_TO_MASK.put("access", MASK_ALL);
+        KEY_TO_MASK.put("foot", MASK_FOOT);
+        KEY_TO_MASK.put("vehicle", MASK_VEHICLE);
+        KEY_TO_MASK.put("bicycle", MASK_BICYCLE);
+        KEY_TO_MASK.put("motor_vehicle", MASK_MOTOR_VEHICLE);
+        KEY_TO_MASK.put("motorcycle", MASK_MOTORCYCLE);
+        KEY_TO_MASK.put("moped", MASK_SMALL_MOTORCYCLE);
+        KEY_TO_MASK.put("mofa", MASK_SMALL_MOTORCYCLE);
+        KEY_TO_MASK.put("motorcar", MASK_MOTORCAR);
+        KEY_TO_MASK.put("agricultural", MASK_AGRICULTURAL);
+        KEY_TO_MASK.put("hgv", MASK_HEAVY_GOODS);
+        KEY_TO_MASK.put("psv", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("bus", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("minibus", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("share_taxi", MASK_PUBLIC_TRANSPORT);
+
+        // Puts value
+        KEY_TO_MASK.put("yes", MASK_YES);
+        KEY_TO_MASK.put("true", MASK_YES);
+        KEY_TO_MASK.put("1", MASK_YES);
+        KEY_TO_MASK.put("no", MASK_NO);
+        KEY_TO_MASK.put("false", MASK_NO);
+        KEY_TO_MASK.put("0", MASK_NO);
+        KEY_TO_MASK.put("private", MASK_PRIVATE);
+        KEY_TO_MASK.put("permissive", MASK_YES);
+        KEY_TO_MASK.put("destination", MASK_TARGET);
+        KEY_TO_MASK.put("delivery", MASK_TARGET);
+        KEY_TO_MASK.put("customers", MASK_TARGET);
+        KEY_TO_MASK.put("designated", MASK_YES);
+        KEY_TO_MASK.put("use_sidepath", MASK_YES);
+        KEY_TO_MASK.put("dismount", MASK_YES);
+        KEY_TO_MASK.put("agricultural", MASK_FORESTRY);
+        KEY_TO_MASK.put("forestry", MASK_FORESTRY);
+        KEY_TO_MASK.put("discouraged", MASK_NO);
+        KEY_TO_MASK.put("unknown", MASK_UNKNOWN);
+
+    }
+
     /**
      * Retrieve access from road type, if possible.
      * 
@@ -68,7 +113,7 @@ public class AccessData {
      * 
      * @return
      */
-    public static long accessForRoadType(RoadType roadtype) {
+    public static long getDefaultAccessForRoadType(RoadType roadtype) {
         if (roadtype == null) {
             return MASK_ALL & MASK_UNKNOWN;
         }
@@ -110,41 +155,22 @@ public class AccessData {
      * 
      * @param tags
      */
-    public static short getAccessType(Map<String, String> tags, RoadType roadType) {
+    public static long getAccessType(Map<String, String> tags, RoadType roadType) {
 
-        int access = 0;
-        for (int i = 0; i < AccessData.USEFUL_TAGS.size(); ++i) {
-            String key = AccessData.USEFUL_TAGS.get(i);
-            if (tags.containsKey(key)) {
-                String value = tags.get(key).toLowerCase();
+        long access = getDefaultAccessForRoadType(roadType);
 
-                // If authorized
-                if (!value.equals("no") && !value.equals("false") && !value.equals("0")) {
-                    access = access | (AccessData.KEY_MASK[i] << 8);
-                }
-
-                // Check the actual value...
-                if (key.equals("access") && (value.equals("yes") || value.equals("true") || value.equals("1"))) {
-                    access = access | AccessData.MASK_ALL;
-                }
-                else if (value.equals("private")) {
-                    // Nothing to do...
-                    access = access | AccessData.MASK_PRIVATE;
-                }
-                else if (value.equals("delivery") || value.equals("customers")) {
-                    access = access | AccessData.MASK_SERVICE;
-                }
-                else if (value.equals("agricultural") || value.equals("forestry")) {
-                    access = access | AccessData.MASK_AGRICULTURAL;
-                }
+        for (String key: AccessData.USEFUL_TAGS) {
+            String value = tags.getOrDefault(key, null);
+            if (value == null) {
+                continue; // Nothing to do
             }
+            long maskKey = KEY_TO_MASK.get(key);
+            long maskValue = VALUE_TO_MASK.getOrDefault(value.toLowerCase(), MASK_UNKNOWN);
+
+            access = (maskKey & maskValue) | (access & ~maskKey);
         }
 
-        // Access = 0, try to find access from roadtype
-        if (access == 0) {
-            access = AccessData.accessForRoadType(roadType);
-        }
-        return (short) access;
+        return access;
     }
 
 }

@@ -27,7 +27,7 @@ import org.laas.osm2graph.model.OSM2GraphConfiguration;
 public class BinaryGraphWriterInsa2018 implements GraphWriter {
 
     // Map version and magic number targeted for this reader.
-    private static final int VERSION = 6;
+    private static final int VERSION = 7;
     private static final int MAGIC_NUMBER = 0x208BC3B3;
 
     private static final String DEFAULT_EXTENSION = "mapgr";
