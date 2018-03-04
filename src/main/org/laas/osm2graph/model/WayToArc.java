@@ -23,7 +23,7 @@ public class WayToArc {
 
     // Tags to keep:
     private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[] { "highway", "natural", "junction", "maxspeed", "oneway" });
+            .asList(new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
