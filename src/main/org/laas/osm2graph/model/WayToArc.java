@@ -29,7 +29,7 @@ public class WayToArc {
 
     // Tags to keep:
     private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[]{ "highway", "natural", "junction", "maxspeed", "oneway" });
+            .asList(new String[] { "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -107,8 +107,7 @@ public class WayToArc {
                 }
 
                 // Check the actual value...
-                if (key.equals("access")
-                        && (value.equals("yes") || value.equals("true") || value.equals("1"))) {
+                if (key.equals("access") && (value.equals("yes") || value.equals("true") || value.equals("1"))) {
                     access = access | AccessData.MASK_ALL;
                 }
                 else if (value.equals("private")) {
@@ -212,8 +211,7 @@ public class WayToArc {
      * @return true if this tag is useful, false otherwize.
      */
     protected boolean isUsefulTag(Tag tag) {
-        return USEFUL_TAGS.contains((String) tag.getKey())
-                || AccessData.USEFUL_TAGS.contains((String) tag.getKey());
+        return USEFUL_TAGS.contains((String) tag.getKey()) || AccessData.USEFUL_TAGS.contains((String) tag.getKey());
     }
 
     /**
@@ -245,9 +243,8 @@ public class WayToArc {
 
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
             RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
-                    && ri.getAccess() == access) {
+            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay) && ri.getType().equals(roadType)
+                    && ri.getMaximumSpeed() == maxSpeed && ri.getAccess() == access) {
                 roadinfo = ri;
             }
         }
@@ -318,8 +315,7 @@ public class WayToArc {
             points.add(newPoint);
 
             if (this.nodeMarks.get(nodeId)) {
-                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo,
-                        points));
+                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo, points));
 
                 length = 0;
                 points = new ArrayList<Point>();
@@ -360,7 +356,7 @@ public class WayToArc {
         }
 
         for (Arc arc: arcs) {
-            if (arc.getLength() > 1 << 16 - 1) {
+            if (arc.getLength() > (1 << 16) - 1) {
                 LOGGER.info("Too long arc: " + arc.getLength());
             }
         }

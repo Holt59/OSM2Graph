@@ -6,7 +6,7 @@ import java.util.Map;
 public class GraphWriterFactory {
 
     // Default writer.
-    public final static String DEFAULT_WRITER = "insa2016";
+    public final static String DEFAULT_WRITER = "insa2018";
 
     // Allowed writer
     public final static Map<String, Class<? extends GraphWriter>> ALLOWED_WRITERS = new HashMap<String, Class<? extends GraphWriter>>();

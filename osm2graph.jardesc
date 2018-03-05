@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
     <jar path="OSM2Graph/osm2graph.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/OSM2Graph/osm2graph.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
@@ -15,6 +15,5 @@
         <file path="/OSM2Graph/.classpath"/>
         <javaElement handleIdentifier="=OSM2Graph/src\/main"/>
         <folder path="/OSM2Graph/resources"/>
-        <javaElement handleIdentifier="=OSM2Graph/src"/>
     </selectedElements>
 </jardesc>

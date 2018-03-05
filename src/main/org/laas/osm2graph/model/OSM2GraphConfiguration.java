@@ -31,7 +31,8 @@ public class OSM2GraphConfiguration {
     private GraphWriter writer;
     private int threads;
 
-    private int mapId = -1;
+    private String mapId = null;
+    private String mapName = null;
 
     /**
      * Convenience method - The writer should be set before calling this method so
@@ -94,8 +95,15 @@ public class OSM2GraphConfiguration {
     /**
      * @return the map ID.
      */
-    public int getMapId() {
+    public String getMapId() {
         return this.mapId;
+    }
+
+    /**
+     * @return the map name.
+     */
+    public String getMapName() {
+        return this.mapName;
     }
 
     /**
@@ -134,10 +142,17 @@ public class OSM2GraphConfiguration {
     }
 
     /**
-     * @param id id Map ID to set.
+     * @param id Map ID to set.
      */
-    public void setMapId(int id) {
+    public void setMapId(String id) {
         this.mapId = id;
+    }
+
+    /**
+     * @param name Map name to set.
+     */
+    public void setMapName(String name) {
+        this.mapName = name;
     }
 
     /**
@@ -173,6 +188,7 @@ public class OSM2GraphConfiguration {
      *
      * @throws IllegalArgumentException thrown if configuration is invalid
      */
-    public void validate() {
+    public void validate() throws IllegalArgumentException {
+        getGraphWriter().validate(this);
     }
 }

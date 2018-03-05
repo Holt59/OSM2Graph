@@ -12,8 +12,12 @@ bin/osmosis --rb input_map.osm.pbf \
             --tf reject-relations \
             --tf accept-ways highway=$(cat resources/highway-filter.cmd) natural=coastline junction=roundabout \
             --used-node \
-            --osm2graph file=output_map.mapgr writer=insa2018 map-id=0x200
+            --osm2graph file=output_map.mapgr writer=insa2018 id=MAP-ID name="A map name"
 ```
+
+The only mandatory parameter is `file`, the default `writer` is `insa2018`, the next parameter (`id` and `name`) are only 
+mandatory if required by the specified writer (e.g. for `insa2016`, `id` must be convertible to `int` for `insa2016` and `name`
+should not be specified).
 
 You can use any input mode for `osmosis` (pbf, xml, mysql, ...). The `--tf reject-relations` and `--used-node` options
 are optional but can speed up the process quite a bit.
@@ -36,5 +40,10 @@ static {
 }
 ```
 
-You writer should be default constructible.
+You writer should be default constructible and implement the following methods:
 
+- `writeGraph` - the actual implementation of the write.
+- `setOutputStream` - method used to set the output stream, the stream given by the task is a `BufferedInputStream`
+from the file in the parameters.
+- `getDefaultExtension` - used to add an extension when the user did not specify one.
+- `validate` - validate the set of parameters given by the user and throw exceptions if something is wrong.
