@@ -49,10 +49,12 @@ public class RoadTypeData {
             return RoadType.ROUNDABOUT;
         }
 
-        if (!tags.containsKey("highway")) {
+        String highway = tags.getOrDefault("highway", null);
+
+        if (highway == null) {
             return RoadType.UNCLASSIFIED;
         }
 
-        return HIGHWAY_TO_ROADTYPE.getOrDefault(tags.get("highway").toLowerCase(), RoadType.UNCLASSIFIED);
+        return HIGHWAY_TO_ROADTYPE.getOrDefault(highway.toLowerCase(), RoadType.UNCLASSIFIED);
     }
 }
