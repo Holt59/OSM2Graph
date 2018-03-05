@@ -16,6 +16,8 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -87,7 +89,10 @@ public class OSM2GraphTask implements Sink {
 
         LOGGER.info("creating graph...");
 
+        Instant start = Instant.now();
         ArrayList<Arc> arcs = new WayToArc(vertices).convert(ways);
+        LOGGER.info("Converted " + ways.size() + " ways to " + arcs.size() + " arcs in "
+                + Duration.between(start, Instant.now()).getSeconds() + " units.");
 
         LOGGER.info("retrieving vertices from arcs... ");
         ArrayList<Vertex> nodes = new ArrayList<Vertex>(2 * arcs.size());
