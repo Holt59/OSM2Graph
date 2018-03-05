@@ -1,7 +1,8 @@
 package org.laas.osm2graph.model;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,17 +25,10 @@ public class AccessData {
      *              - Bus / Minibus / Share taxi / Taxi
      */
 
-    // Useful tags for access information, order is important!
-    public final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[] { "access", "foot", "vehicle", "bicycle", "motor_vehicle", "motorcycle", "moped",
-                    "mofa", "motorcar", "agricultural", "hgv", "psv", "bus", "minibus", "share_taxi" });
-
     /*
      * 4 bits are associated to each type of vehicle, these 4 bits represents the
-     * type of access (see below).
-     * 
-     * Note: The highest 4 bits of the long are not used, for compatibility issue
-     * (unsigned/signed... ).
+     * type of access (see below). Note: The highest 4 bits of the long are not
+     * used, for compatibility issue (unsigned/signed... ).
      */
 
     // @formatter:off
@@ -65,8 +59,13 @@ public class AccessData {
             MASK_PUBLIC_TRANSPORT = 0x0000f0000000000L; // psv,bus,minibus,share_taxi=*
     // @formatter:on
 
-    // Map key / value with their mask
-    private static final Map<String, Long> KEY_TO_MASK = new HashMap<>();
+    // Useful tags for access information, order is important!
+    public final static List<String> USEFUL_TAGS = new ArrayList<>();
+
+    // Map Key -> Mask - Need a LinkedHashMap to keep order.
+    private static final Map<String, Long> KEY_TO_MASK = new LinkedHashMap<>();
+
+    // Map Value -> Mask
     private static final Map<String, Long> VALUE_TO_MASK = new HashMap<>();
 
     static {
@@ -86,6 +85,8 @@ public class AccessData {
         KEY_TO_MASK.put("bus", MASK_PUBLIC_TRANSPORT);
         KEY_TO_MASK.put("minibus", MASK_PUBLIC_TRANSPORT);
         KEY_TO_MASK.put("share_taxi", MASK_PUBLIC_TRANSPORT);
+
+        USEFUL_TAGS.addAll(KEY_TO_MASK.keySet());
 
         // Puts value
         VALUE_TO_MASK.put("yes", MASK_YES);
@@ -127,7 +128,8 @@ public class AccessData {
         case MOTORWAY_LINK:
         case TRUNK:
         case TRUNK_LINK:
-            return (MASK_MOTOR_VEHICLE & (~MASK_SMALL_MOTORCYCLE) & (~MASK_AGRICULTURAL)) & MASK_YES;
+            return (MASK_MOTOR_VEHICLE & (~MASK_SMALL_MOTORCYCLE) & (~MASK_AGRICULTURAL))
+                    & MASK_YES;
         case PRIMARY:
         case PRIMARY_LINK:
         case SECONDARY:
@@ -162,12 +164,12 @@ public class AccessData {
 
         long access = getDefaultAccessForRoadType(roadType);
 
-        for (String key: AccessData.USEFUL_TAGS) {
-            if (!tags.containsKey(key)) {
+        for (Map.Entry<String, Long> entry: KEY_TO_MASK.entrySet()) {
+            String value = tags.getOrDefault(entry.getKey(), null);
+            if (value == null) {
                 continue;
             }
-            String value = tags.get(key);
-            long maskKey = KEY_TO_MASK.get(key);
+            long maskKey = entry.getValue();
             long maskValue = VALUE_TO_MASK.getOrDefault(value.toLowerCase(), MASK_UNKNOWN);
             access = (maskKey & maskValue) | (access & ~maskKey);
         }
