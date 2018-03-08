@@ -87,11 +87,11 @@ public class OSM2GraphTask implements Sink {
         nfCounts.setGroupingUsed(true);
         nfMegabyte.setMaximumFractionDigits(2);
 
-        LOGGER.info("creating graph...");
+        LOGGER.info("creating graph using " + this.configuration.getThreads() + "threads...");
 
         Instant start = Instant.now();
         ArrayList<Arc> arcs = new WayToArc(this.vertices, this.configuration).convert(this.ways);
-        LOGGER.info("Converted " + ways.size() + " ways to " + arcs.size() + " arcs in "
+        LOGGER.info("converted " + ways.size() + " ways to " + arcs.size() + " arcs in "
                 + Duration.between(start, Instant.now()).getNano() / 1000 + "us.");
 
         LOGGER.info("retrieving vertices from arcs... ");
