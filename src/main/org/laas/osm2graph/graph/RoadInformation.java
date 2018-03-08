@@ -19,12 +19,14 @@ public class RoadInformation {
         PRIMARY_LINK,
         SECONDARY_LINK,
         TERTIARY,
+        TRACK, // TODO: Track
         RESIDENTIAL,
         UNCLASSIFIED,
-        ROAD,
         LIVING_STREET,
         SERVICE,
         ROUNDABOUT,
+        PEDESTRIAN, // TODO: footway, steps, bridleway
+        BICYCLE, // TODO: cycleway
         COASTLINE
     }
 
@@ -32,7 +34,7 @@ public class RoadInformation {
     private final RoadType type;
 
     // Access details
-    private final int access;
+    private final long access;
 
     // One way road?
     private final boolean oneway;
@@ -43,8 +45,7 @@ public class RoadInformation {
     // Name of the road.
     private final String name;
 
-    public RoadInformation(RoadType roadType, int access, boolean isOneWay, int maxSpeed,
-            String name) {
+    public RoadInformation(RoadType roadType, long access, boolean isOneWay, int maxSpeed, String name) {
         this.type = roadType;
         this.access = access;
         this.oneway = isOneWay;
@@ -62,7 +63,7 @@ public class RoadInformation {
     /**
      * @return Access information.
      */
-    public int getAccess() {
+    public long getAccess() {
         return this.access;
     }
 
@@ -89,6 +90,7 @@ public class RoadInformation {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -100,8 +102,7 @@ public class RoadInformation {
         if (getType() == RoadType.MOTORWAY) {
             typeAsString = "highway";
         }
-        return typeAsString + " : " + getName() + " " + (isOneWay() ? " (oneway) " : "") + maxSpeed
-                + " km/h (max.)";
+        return typeAsString + " : " + getName() + " " + (isOneWay() ? " (oneway) " : "") + maxSpeed + " km/h (max.)";
     }
 
 }

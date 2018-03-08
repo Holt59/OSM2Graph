@@ -27,7 +27,7 @@ import org.laas.osm2graph.model.OSM2GraphConfiguration;
 public class BinaryGraphWriterInsa2018 implements GraphWriter {
 
     // Map version and magic number targeted for this reader.
-    private static final int VERSION = 6;
+    private static final int VERSION = 7;
     private static final int MAGIC_NUMBER = 0x208BC3B3;
 
     private static final String DEFAULT_EXTENSION = "mapgr";
@@ -67,14 +67,18 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
             return 'j';
         case UNCLASSIFIED:
             return 'k';
-        case ROAD:
-            return 'l';
         case LIVING_STREET:
             return 'm';
         case SERVICE:
             return 'n';
         case ROUNDABOUT:
             return 'o';
+        case PEDESTRIAN:
+            return 'p';
+        case BICYCLE:
+            return 'q';
+        case TRACK:
+            return 'r';
         case COASTLINE:
             return 'z';
         }
@@ -160,7 +164,7 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 x = x | 0x80;
             }
             dos.writeByte(x);
-            dos.writeShort((short) info.getAccess());
+            dos.writeLong(info.getAccess());
             dos.writeUTF(info.getName());
         }
 

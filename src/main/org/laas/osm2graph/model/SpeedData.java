@@ -16,16 +16,77 @@ public class SpeedData {
     //
     private static final Map<String, Integer> SPEED_FOR_COUNTRIES = new HashMap<String, Integer>();
 
+    // Default maximum speed.
+    private final static int DEFAULT_MAXIMUM_SPEED = 50;
+
+    // Default walk speed
+    private final static int DEFAULT_WALK_SPEED = 5;
+
+    // Default bicycle speed
+    private final static int DEFAULT_BICYCLE_SPEED = 14;
+
+    /**
+     * Try to infer the maximum speed from the given string (which should come from
+     * a "maxspeed" tag), and use the given road type as a fallback.
+     * 
+     * @param maxspeed Value of a "maxspeed" tag, or null.
+     * @param roadtype Road type to infer speed if "maxspeed" was not sufficient.
+     * 
+     * @return Maximum speed in kmph.
+     */
+    public static int getMaximumSpeed(Map<String, String> tags, RoadType roadtype) {
+        String maxspeed = tags.getOrDefault("maxspeed", null);
+        final int defaultSpeed = SpeedData.maxSpeedForRoadType(roadtype, DEFAULT_MAXIMUM_SPEED);
+        if (maxspeed == null) {
+            return defaultSpeed;
+        }
+        maxspeed = maxspeed.toLowerCase();
+        if (maxspeed.equals("none") || maxspeed.equals("signal")) {
+            return defaultSpeed;
+        }
+        if (maxspeed.equals("walk")) {
+            return DEFAULT_WALK_SPEED;
+        }
+        int speed = DEFAULT_MAXIMUM_SPEED;
+        if (maxspeed.contains(":")) {
+            // Implicit speed
+            speed = SpeedData.speedForCode(maxspeed, defaultSpeed);
+        }
+        else {
+            // Numeric speed
+            String[] parts = maxspeed.split(" ");
+            try {
+                speed = Integer.valueOf(parts[0]);
+            }
+            catch (NumberFormatException exception) {
+                speed = defaultSpeed;
+            }
+
+            if (parts.length == 1) {
+                return speed;
+            }
+            String unit = parts[1];
+            if (unit.equals("knots")) {
+                return (int) (speed * 1.852);
+            }
+            if (unit.equals("mph")) {
+                return (int) (speed * 1.609);
+            }
+            return speed;
+        }
+        return speed;
+    }
+
     /**
      * Fetch the speed for the given code in the static table. If the code is not
      * found, return defaultSpeed.
      * 
      * @param code Code to fetch.
      * @param defaultSpeed Default speed to return if their is no speed associated
-     * to the given code.
+     *        to the given code.
      * 
      * @return The speed limits for the given code, or defaultSpeed if it was not
-     * found.
+     *         found.
      */
     public static int speedForCode(String code, int defaultSpeed) {
         return SPEED_FOR_COUNTRIES.getOrDefault(code, defaultSpeed);
@@ -36,10 +97,10 @@ public class SpeedData {
      * 
      * @param roadtype
      * @param defaultSpeed Default speed to return if roadtype is null or does not
-     * have an associated maximum speed.
+     *        have an associated maximum speed.
      * 
      * @return Maximum speed for the given road type, or defaultSpeed is none
-     * exists.
+     *         exists.
      */
     public static int maxSpeedForRoadType(RoadType roadtype, int defaultSpeed) {
         // Handle null value...
@@ -65,11 +126,15 @@ public class SpeedData {
             return 50;
         case RESIDENTIAL:
         case SERVICE:
-        case ROAD:
         case ROUNDABOUT:
         case LIVING_STREET:
         case UNCLASSIFIED:
+        case TRACK:
             return 30;
+        case BICYCLE:
+            return DEFAULT_BICYCLE_SPEED;
+        case PEDESTRIAN:
+            return DEFAULT_WALK_SPEED;
         case COASTLINE:
             return 0;
         }

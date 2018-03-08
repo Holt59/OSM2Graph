@@ -1,70 +1,114 @@
 package org.laas.osm2graph.model;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.laas.osm2graph.graph.RoadInformation.RoadType;
 
 public class AccessData {
 
-    /*- // Hyphen preventing Eclipse from formatting this block....
-     * 
-     * 16 bits: 
-     *   - 0 Unknown
-     *   - 1 Private
-     *   - 2 Agricultural/Forestry
-     *   - 3 Service
-     *   - 4 Public Transport
-     *   - 5
-     *   - 6
-     *   - 7
-     *   - 8 Foot
-     *   - 9 Bicycle 
-     *   - 10 Small motorcycle
-     *   - 11 Motorcycle 
-     *   - 12 Motorcar 
-     *   - 13 Bus
-     *   - 14
-     *   - 15
+    /*-
+     * Type of "vehicle"
+     *   - Non-vehicle:
+     *      - Foot
+     *   - Vehicle:
+     *      - Non-motorized:
+     *          - bicycle
+     *      - Motorized:
+     *          - Motorcycle
+     *          - Moped & Mofa
+     *          - Motorcar
+     *          - Public service:
+     *              - Bus / Minibus / Share taxi / Taxi
      */
 
-    // Somem asks...
-    public static final int MASK_UNKNOWN = 0x01;
-    public static final int MASK_PRIVATE = 0x02;
-    public static final int MASK_AGRICULTURAL = 0x04;
-    public static final int MASK_SERVICE = 0x08;
-    public static final int MASK_PUBLIC_TRANSPORT = 0x10;
+    /*
+     * 4 bits are associated to each type of vehicle, these 4 bits represents the
+     * type of access (see below). Note: The highest 4 bits of the long are not
+     * used, for compatibility issue (unsigned/signed... ).
+     */
 
-    public static final int MASK_ALL = 0xFF;
-    public static final int MASK_FOOT = 0x01;
-    public static final int MASK_VEHICLE = 0xFE;
-    public static final int MASK_BICYCLE = 0x02;
-    public static final int MASK_MOTOR_VEHICLE = 0xFC;
-    public static final int MASK_MOTORCYCLE = 0x0C;
-    public static final int MASK_SMALL_MOTORCYCLE = 0x08;
-    public static final int MASK_MOTORCAR = 0x10;
-    public static final int MASK_BUS = 0x20;
+    // @formatter:off
+    // These masks indicates which bit should be set for the access value.
+    public static final long
+            MASK_NO           = 0x0L, // *=no,
+            MASK_YES          = 0x111111111111111L, // *=yes
+            MASK_PRIVATE      = 0x222222222222222L, // *=private
+            MASK_DESTINATION  = 0x333333333333333L, // *=destination
+            MASK_DELIVERY     = 0x444444444444444L, // *=delivery
+            MASK_CUSTOMERS    = 0x555555555555555L, // *=customers,
+            MASK_FORESTRY     = 0x666666666666666L, // *=forestry,*=agricultural
+            MASK_UNKNOWN      = 0xfffffffffffffffL;
+
+    // These masks indicates which parts of the long should be set for each type of
+    // vehicle
+    public static final long 
+            MASK_ALL              = 0xfffffffffffffffL, // access=*,
+            MASK_FOOT             = 0x00000000000000fL, // foot=*
+            MASK_VEHICLE          = 0xfffffffffffff00L, // vehicle=*
+            MASK_BICYCLE          = 0x000000000000f00L, // bicycle=*
+            MASK_MOTOR_VEHICLE    = 0xffffffffffff000L, // motor_vehicle=*
+            MASK_SMALL_MOTORCYCLE = 0x00000000000f000L, // moped,mofa=*
+            MASK_AGRICULTURAL     = 0x0000000000f0000L, // agricultural=*
+            MASK_MOTORCYCLE       = 0x000000000f00000L, // motorcycle=*
+            MASK_MOTORCAR         = 0x00000000f000000L, // motorcar=*
+            MASK_HEAVY_GOODS      = 0x0000000f0000000L, // motorcar=*
+            MASK_PUBLIC_TRANSPORT = 0x0000f0000000000L; // psv,bus,minibus,share_taxi=*
+    // @formatter:on
 
     // Useful tags for access information, order is important!
-    public final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[]{ "access", "foot", "vehicle", "bicycle", "motor_vehicle",
-                    "motorcycle", "moped", "mofa", "motorcar", "psv", "bus", "minibus" });
+    public final static List<String> USEFUL_TAGS = new ArrayList<>();
 
-    // Masks for each tag (if != no), this correspond to the second byte.
-    public final static int[] KEY_MASK = new int[]{ //
-            MASK_ALL, // all access
-            MASK_FOOT, // foot (bits 0)
-            MASK_VEHICLE, // vehicle (bits 1 to 7)
-            MASK_BICYCLE, // bicycle (bits 1)
-            MASK_MOTOR_VEHICLE, // motor_vehicle (bits 2 to 7)
-            MASK_MOTORCYCLE, // motorcycle (bits 2 and 3)
-            MASK_SMALL_MOTORCYCLE, // moped (bits 3)
-            MASK_SMALL_MOTORCYCLE, // mofa (bits 3)
-            MASK_MOTORCAR, // motorcar (bits 4)
-            MASK_BUS, // PSV (bits 5)
-            MASK_BUS, // buses (bits 5)
-            MASK_BUS // minibuses (bits 5)
-    };
+    // Map Key -> Mask - Need a LinkedHashMap to keep order.
+    private static final Map<String, Long> KEY_TO_MASK = new LinkedHashMap<>();
+
+    // Map Value -> Mask
+    private static final Map<String, Long> VALUE_TO_MASK = new HashMap<>();
+
+    static {
+        // Puts keys
+        KEY_TO_MASK.put("access", MASK_ALL);
+        KEY_TO_MASK.put("foot", MASK_FOOT);
+        KEY_TO_MASK.put("vehicle", MASK_VEHICLE);
+        KEY_TO_MASK.put("bicycle", MASK_BICYCLE);
+        KEY_TO_MASK.put("motor_vehicle", MASK_MOTOR_VEHICLE);
+        KEY_TO_MASK.put("motorcycle", MASK_MOTORCYCLE);
+        KEY_TO_MASK.put("moped", MASK_SMALL_MOTORCYCLE);
+        KEY_TO_MASK.put("mofa", MASK_SMALL_MOTORCYCLE);
+        KEY_TO_MASK.put("motorcar", MASK_MOTORCAR);
+        KEY_TO_MASK.put("agricultural", MASK_AGRICULTURAL);
+        KEY_TO_MASK.put("hgv", MASK_HEAVY_GOODS);
+        KEY_TO_MASK.put("psv", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("bus", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("minibus", MASK_PUBLIC_TRANSPORT);
+        KEY_TO_MASK.put("share_taxi", MASK_PUBLIC_TRANSPORT);
+
+        USEFUL_TAGS.addAll(KEY_TO_MASK.keySet());
+
+        // Puts value
+        VALUE_TO_MASK.put("yes", MASK_YES);
+        VALUE_TO_MASK.put("true", MASK_YES);
+        VALUE_TO_MASK.put("1", MASK_YES);
+        VALUE_TO_MASK.put("no", MASK_NO);
+        VALUE_TO_MASK.put("false", MASK_NO);
+        VALUE_TO_MASK.put("0", MASK_NO);
+        VALUE_TO_MASK.put("private", MASK_PRIVATE);
+        VALUE_TO_MASK.put("permissive", MASK_YES);
+        VALUE_TO_MASK.put("destination", MASK_DESTINATION);
+        VALUE_TO_MASK.put("delivery", MASK_DELIVERY);
+        VALUE_TO_MASK.put("customers", MASK_CUSTOMERS);
+        VALUE_TO_MASK.put("designated", MASK_YES);
+        VALUE_TO_MASK.put("use_sidepath", MASK_YES);
+        VALUE_TO_MASK.put("dismount", MASK_YES);
+        VALUE_TO_MASK.put("agricultural", MASK_FORESTRY);
+        VALUE_TO_MASK.put("forestry", MASK_FORESTRY);
+        VALUE_TO_MASK.put("discouraged", MASK_NO);
+        VALUE_TO_MASK.put("unknown", MASK_UNKNOWN);
+
+    }
 
     /**
      * Retrieve access from road type, if possible.
@@ -73,28 +117,64 @@ public class AccessData {
      * 
      * @return
      */
-    public static int accessForRoadType(RoadType roadtype) {
+    public static long getDefaultAccessForRoadType(RoadType roadtype) {
         if (roadtype == null) {
-            return MASK_UNKNOWN;
+            return MASK_ALL & MASK_UNKNOWN;
         }
 
         // Handle normal value
         switch (roadtype) {
         case MOTORWAY:
-        case TRUNK:
-        case PRIMARY_LINK:
-        case SECONDARY_LINK:
         case MOTORWAY_LINK:
+        case TRUNK:
         case TRUNK_LINK:
-            return (MASK_MOTOR_VEHICLE & (~MASK_SMALL_MOTORCYCLE)) << 8;
+            return (MASK_MOTOR_VEHICLE & (~MASK_SMALL_MOTORCYCLE) & (~MASK_AGRICULTURAL))
+                    & MASK_YES;
         case PRIMARY:
-            return MASK_ALL << 8;
+        case PRIMARY_LINK:
+        case SECONDARY:
+        case SECONDARY_LINK:
+        case TERTIARY:
+        case RESIDENTIAL:
+        case LIVING_STREET:
+        case ROUNDABOUT:
+            return MASK_ALL & MASK_YES;
         case SERVICE:
-            return (MASK_ALL << 8) | MASK_SERVICE;
-        default:
-            return MASK_UNKNOWN;
+            return MASK_ALL & MASK_YES;
+        case TRACK:
+            return (MASK_ALL & (~MASK_PUBLIC_TRANSPORT) & (~MASK_HEAVY_GOODS)) & MASK_YES;
+        case BICYCLE:
+            return MASK_BICYCLE & MASK_YES;
+        case PEDESTRIAN:
+            return (MASK_FOOT | MASK_BICYCLE) & MASK_YES;
+        case COASTLINE:
+        case UNCLASSIFIED:
+            return MASK_ALL & MASK_UNKNOWN;
+        }
+        return MASK_ALL & MASK_UNKNOWN;
+
+    }
+
+    /**
+     * Get access type associated with the given tags.
+     * 
+     * @param tags
+     */
+    public static long getAccessType(Map<String, String> tags, RoadType roadType) {
+
+        long access = getDefaultAccessForRoadType(roadType);
+
+        for (Map.Entry<String, Long> entry: KEY_TO_MASK.entrySet()) {
+            String value = tags.getOrDefault(entry.getKey(), null);
+            if (value == null) {
+                continue;
+            }
+            long maskKey = entry.getValue();
+            long maskValue = VALUE_TO_MASK.getOrDefault(value.toLowerCase(), MASK_UNKNOWN);
+            access = (maskKey & maskValue) | (access & ~maskKey);
         }
 
+        return access;
     }
 
 }

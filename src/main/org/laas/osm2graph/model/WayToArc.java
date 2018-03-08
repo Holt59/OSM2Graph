@@ -21,15 +21,9 @@ public class WayToArc {
 
     private static final Logger LOGGER = Logger.getLogger(WayToArc.class.getName());
 
-    // Default maximum speed.
-    private final static int DEFAULT_MAXIMUM_SPEED = 0;
-
-    // Default walk speed
-    private final static int DEFAULT_WALK_SPEED = 5;
-
     // Tags to keep:
     private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[] { "highway", "natural", "junction", "maxspeed", "oneway" });
+            .asList(new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -46,140 +40,6 @@ public class WayToArc {
     public WayToArc(Map<Long, Vertex> vertices) {
         this.vertices = vertices;
         this.roadinfos = new ArrayList<RoadInformation>();
-    }
-
-    /**
-     * Find the road type associated with the given way by looking at its highway or
-     * natural tag. Way should have been filtered prior to avoid having wrong
-     * "highway" value without a natural tag.
-     * 
-     * Check RoadInformation.RoadType for the list of allowed highway value. If a
-     * way has a tag "natural=coastline", the highway tag is discarded.
-     * 
-     * @param tags Map of key -> value tags.
-     * 
-     * @return Road type associated to the given way, or null if none was found.
-     */
-    private RoadType getRoadType(Map<String, String> tags) {
-
-        // natural=coastline -> Coastline
-        if (tags.getOrDefault("natural", "").toLowerCase().equals("coastline")) {
-            return RoadType.COASTLINE;
-        }
-
-        // junction=roundabout -> Roundabout
-        if (tags.getOrDefault("junction", "").toLowerCase().equals("roundabout")) {
-            return RoadType.ROUNDABOUT;
-        }
-
-        if (!tags.containsKey("highway")) {
-            return RoadType.UNCLASSIFIED;
-        }
-
-        RoadType roadtype = null;
-        try {
-            roadtype = RoadType.valueOf(tags.get("highway").toUpperCase());
-        }
-        catch (IllegalArgumentException e) {
-            LOGGER.severe("Unrecognized road type: highway=" + tags.get("highway"));
-            roadtype = RoadType.UNCLASSIFIED;
-        }
-
-        return roadtype;
-    }
-
-    /**
-     * Get access type associated with the given tags.
-     * 
-     * @param tags
-     */
-    private short getAccessType(Map<String, String> tags, RoadType roadType) {
-
-        int access = 0;
-        for (int i = 0; i < AccessData.USEFUL_TAGS.size(); ++i) {
-            String key = AccessData.USEFUL_TAGS.get(i);
-            if (tags.containsKey(key)) {
-                String value = tags.get(key).toLowerCase();
-
-                // If authorized
-                if (!value.equals("no") && !value.equals("false") && !value.equals("0")) {
-                    access = access | (AccessData.KEY_MASK[i] << 8);
-                }
-
-                // Check the actual value...
-                if (key.equals("access") && (value.equals("yes") || value.equals("true") || value.equals("1"))) {
-                    access = access | AccessData.MASK_ALL;
-                }
-                else if (value.equals("private")) {
-                    // Nothing to do...
-                    access = access | AccessData.MASK_PRIVATE;
-                }
-                else if (value.equals("delivery") || value.equals("customers")) {
-                    access = access | AccessData.MASK_SERVICE;
-                }
-                else if (value.equals("agricultural") || value.equals("forestry")) {
-                    access = access | AccessData.MASK_AGRICULTURAL;
-                }
-            }
-        }
-
-        // Access = 0, try to find access from roadtype
-        if (access == 0) {
-            access = AccessData.accessForRoadType(roadType);
-        }
-        return (short) access;
-    }
-
-    /**
-     * Try to infer the maximum speed from the given string (which should come from
-     * a "maxspeed" tag), and use the given road type as a fallback.
-     * 
-     * @param maxspeed Value of a "maxspeed" tag, or null.
-     * @param roadtype Road type to infer speed if "maxspeed" was not sufficient.
-     * 
-     * @return Maximum speed in kmph.
-     */
-    private int getMaximumSpeed(Map<String, String> tags, RoadType roadtype) {
-        String maxspeed = tags.getOrDefault("maxspeed", null);
-        final int defaultSpeed = SpeedData.maxSpeedForRoadType(roadtype, DEFAULT_MAXIMUM_SPEED);
-        if (maxspeed == null) {
-            return defaultSpeed;
-        }
-        maxspeed = maxspeed.toLowerCase();
-        if (maxspeed.equals("none") || maxspeed.equals("signal")) {
-            return defaultSpeed;
-        }
-        if (maxspeed.equals("walk")) {
-            return DEFAULT_WALK_SPEED;
-        }
-        int speed = DEFAULT_MAXIMUM_SPEED;
-        if (maxspeed.contains(":")) {
-            // Implicit speed
-            speed = SpeedData.speedForCode(maxspeed, defaultSpeed);
-        }
-        else {
-            // Numeric speed
-            String[] parts = maxspeed.split(" ");
-            try {
-                speed = Integer.valueOf(parts[0]);
-            }
-            catch (NumberFormatException exception) {
-                speed = defaultSpeed;
-            }
-
-            if (parts.length == 1) {
-                return speed;
-            }
-            String unit = parts[1];
-            if (unit.equals("knots")) {
-                return (int) (speed * 1.852);
-            }
-            if (unit.equals("mph")) {
-                return (int) (speed * 1.609);
-            }
-            return speed;
-        }
-        return speed;
     }
 
     /**
@@ -232,10 +92,10 @@ public class WayToArc {
             }
         }
 
-        RoadType roadType = getRoadType(tags);
-        int maxSpeed = getMaximumSpeed(tags, roadType);
+        RoadType roadType = RoadTypeData.getRoadType(tags);
+        int maxSpeed = SpeedData.getMaximumSpeed(tags, roadType);
         boolean oneWay = getOneWay(tags, roadType);
-        int access = getAccessType(tags, roadType);
+        long access = AccessData.getAccessType(tags, roadType);
 
         String name = tags.getOrDefault("name", "");
 
