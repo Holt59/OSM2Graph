@@ -2,6 +2,7 @@ package org.laas.osm2graph.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -80,8 +81,8 @@ public class WayToArc {
     };
 
     // Tags to keep:
-    private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[]{ "name", "highway", "natural", "junction", "maxspeed", "oneway" });
+    private final static List<String> USEFUL_TAGS = Arrays.asList(
+            new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -90,7 +91,7 @@ public class WayToArc {
     protected final Set<Long> nodeMarks;
 
     // Mapping road name -> Road informations
-    protected final ArrayList<RoadInformation> roadinfos;
+    protected final List<RoadInformation> roadinfos;
 
     // Configuration.
     protected final OSM2GraphConfiguration configuration;
@@ -100,7 +101,7 @@ public class WayToArc {
      */
     public WayToArc(Map<Long, Vertex> vertices, OSM2GraphConfiguration configuration) {
         this.vertices = vertices;
-        this.roadinfos = new ArrayList<RoadInformation>();
+        this.roadinfos = Collections.synchronizedList(new ArrayList<RoadInformation>());
         this.configuration = configuration;
         this.nodeMarks = new HashSet<>(vertices.size());
     }
@@ -165,23 +166,22 @@ public class WayToArc {
 
         RoadInformation roadinfo = null;
 
-        synchronized (roadinfos) {
-            for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
-                RoadInformation ri = roadinfos.get(i);
-                if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                        && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
-                        && ri.getAccess() == access) {
-                    roadinfo = ri;
-                }
-            }
-
-            if (roadinfo == null) {
-                roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
-                roadinfos.add(roadinfo);
+        for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
+            RoadInformation ri = roadinfos.get(i);
+            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
+                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
+                    && ri.getAccess() == access) {
+                roadinfo = ri;
             }
         }
 
+        if (roadinfo == null) {
+            roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
+            roadinfos.add(roadinfo);
+        }
+
         return roadinfo;
+
     }
 
     /**
