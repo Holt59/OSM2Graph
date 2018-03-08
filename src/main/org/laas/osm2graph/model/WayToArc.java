@@ -26,13 +26,55 @@ public class WayToArc {
 
     private class WayToArcProcessor implements Runnable {
 
-        public WayToArcProcessor() {
+        // List of ways to process
+        private final List<Way> ways;
+
+        // first / last index
+        private final int first, last;
+        private int nProcessed;
+
+        // List of arcs processed
+        private final List<Arc> arcs;
+
+        /**
+         * Create a new WayToArcProcessor that should convert ways starting at first up
+         * to last (not included).
+         * 
+         * @param ways
+         * @param first
+         * @param last
+         */
+        public WayToArcProcessor(List<Way> ways, int first, int last) {
+            this.ways = ways;
+            this.first = first;
+            this.last = last;
+            this.nProcessed = 0;
+            this.arcs = new ArrayList<>(last - first);
+        }
+
+        /**
+         * @return The list of converted arcs.
+         */
+        public synchronized List<Arc> getArcs() {
+            return this.arcs;
+        }
+
+        /**
+         * @return Number of ways that have been processed.
+         */
+        public synchronized int getNumberOfWaysProcessed() {
+            return this.nProcessed;
         }
 
         @Override
         public void run() {
-            // TODO Auto-generated method stub
-
+            for (int i = first; i < last; ++i) {
+                List<Arc> sarcs = convert(this.ways.get(i));
+                arcs.addAll(sarcs);
+                synchronized (this) {
+                    this.nProcessed += 1;
+                }
+            }
         }
 
     };
@@ -123,18 +165,20 @@ public class WayToArc {
 
         RoadInformation roadinfo = null;
 
-        for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
-            RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
-                    && ri.getAccess() == access) {
-                roadinfo = ri;
+        synchronized (roadinfos) {
+            for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
+                RoadInformation ri = roadinfos.get(i);
+                if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
+                        && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
+                        && ri.getAccess() == access) {
+                    roadinfo = ri;
+                }
             }
-        }
 
-        if (roadinfo == null) {
-            roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
-            roadinfos.add(roadinfo);
+            if (roadinfo == null) {
+                roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
+                roadinfos.add(roadinfo);
+            }
         }
 
         return roadinfo;
@@ -224,18 +268,51 @@ public class WayToArc {
         // Convert arcs
         LOGGER.info("converting way to arcs... ");
 
-        int nLogs = Math.max(10000, Math.min(50000, (int) (ways.size() * 0.05)));
+        int nPerThread = ways.size() / configuration.getThreads() + 1;
+
+        WayToArcProcessor[] processors = new WayToArcProcessor[configuration.getThreads()];
+        Thread[] threads = new Thread[configuration.getThreads()];
+        for (int i = 0; i < threads.length; ++i) {
+            processors[i] = new WayToArcProcessor(ways, i * nPerThread,
+                    Math.min((i + 1) * nPerThread, ways.size()));
+            threads[i] = new Thread(processors[i]);
+            threads[i].start();
+        }
+
+        Thread logger = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        int count = 0;
+                        for (int i = 0; i < processors.length; ++i) {
+                            count += processors[i].getNumberOfWaysProcessed();
+                        }
+                        LOGGER.info("processed " + count + " out of " + ways.size() + " ways.");
+                        Thread.sleep(1000);
+                    }
+                    catch (InterruptedException ex) {
+                        break;
+                    }
+                }
+            }
+        });
+        logger.start();
 
         ArrayList<Arc> arcs = new ArrayList<Arc>();
-        for (int i = 0; i < ways.size(); ++i) {
-            arcs.addAll(convert(ways.get(i)));
-            ways.set(i, null);
-
-            // log
-            if ((i + 1) % nLogs == 0) {
-                LOGGER.info("processed " + (i + 1) + " out of " + ways.size() + " ways");
+        for (int i = 0; i < processors.length; ++i) {
+            try {
+                threads[i].join();
             }
+            catch (InterruptedException e) {
+                LOGGER.warning("Exception when joining thread " + i);
+                e.printStackTrace();
+                return null;
+            }
+            arcs.addAll(processors[i].getArcs());
         }
+
+        logger.interrupt();
 
         for (Arc arc: arcs) {
             if (arc.getLength() > (1 << 16) - 1) {
