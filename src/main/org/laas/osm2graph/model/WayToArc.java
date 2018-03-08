@@ -3,9 +3,11 @@ package org.laas.osm2graph.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.laas.osm2graph.graph.Arc;
@@ -19,27 +21,46 @@ import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 
 public class WayToArc {
 
+    // Logger
     private static final Logger LOGGER = Logger.getLogger(WayToArc.class.getName());
+
+    private class WayToArcProcessor implements Runnable {
+
+        public WayToArcProcessor() {
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+
+        }
+
+    };
 
     // Tags to keep:
     private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
+            .asList(new String[]{ "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
 
-    // Mapping ID (OSM) -> Is a Vertex
-    Map<Long, Boolean> nodeMarks;
+    // Set of vertex IDs.
+    protected final Set<Long> nodeMarks;
 
     // Mapping road name -> Road informations
     protected final ArrayList<RoadInformation> roadinfos;
 
+    // Configuration.
+    protected final OSM2GraphConfiguration configuration;
+
     /**
      * @param vertices
      */
-    public WayToArc(Map<Long, Vertex> vertices) {
+    public WayToArc(Map<Long, Vertex> vertices, OSM2GraphConfiguration configuration) {
         this.vertices = vertices;
         this.roadinfos = new ArrayList<RoadInformation>();
+        this.configuration = configuration;
+        this.nodeMarks = new HashSet<>(vertices.size());
     }
 
     /**
@@ -71,7 +92,8 @@ public class WayToArc {
      * @return true if this tag is useful, false otherwize.
      */
     protected boolean isUsefulTag(Tag tag) {
-        return USEFUL_TAGS.contains((String) tag.getKey()) || AccessData.USEFUL_TAGS.contains((String) tag.getKey());
+        return USEFUL_TAGS.contains((String) tag.getKey())
+                || AccessData.USEFUL_TAGS.contains((String) tag.getKey());
     }
 
     /**
@@ -103,8 +125,9 @@ public class WayToArc {
 
         for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
             RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay) && ri.getType().equals(roadType)
-                    && ri.getMaximumSpeed() == maxSpeed && ri.getAccess() == access) {
+            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
+                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
+                    && ri.getAccess() == access) {
                 roadinfo = ri;
             }
         }
@@ -118,31 +141,29 @@ public class WayToArc {
     }
 
     /**
-     * Create and return a map (NodeID -> Boolean) indicating which node correspond
-     * to a vertex in the graph. A node is considered a vertex if it is the first or
-     * last node of a way, or if it is used by two different ways.
+     * Update the `nodesToMark` attributes to indicate which node correspond to a
+     * vertex in the graph. A node is considered a vertex if it is the first or last
+     * node of a way, or if it is used by two different ways.
      * 
      * @param ways
      * 
-     * @return
      */
-    protected Map<Long, Boolean> findVertex(List<Way> ways) {
-        Map<Long, Boolean> marks = new HashMap<Long, Boolean>(vertices.size());
+    protected void findVertex(List<Way> ways) {
+        Set<Long> current = new HashSet<>(vertices.size());
         for (Way way: ways) {
             List<WayNode> nodes = way.getWayNodes();
             for (WayNode node: nodes) {
                 long id = node.getNodeId();
-                if (marks.containsKey(id)) {
-                    marks.put(id, true);
+                if (current.contains(id)) {
+                    this.nodeMarks.add(id);
                 }
                 else {
-                    marks.put(id, false);
+                    current.add(id);
                 }
             }
-            marks.put(nodes.get(0).getNodeId(), true);
-            marks.put(nodes.get(nodes.size() - 1).getNodeId(), true);
+            this.nodeMarks.add(nodes.get(0).getNodeId());
+            this.nodeMarks.add(nodes.get(nodes.size() - 1).getNodeId());
         }
-        return marks;
     }
 
     /**
@@ -174,8 +195,9 @@ public class WayToArc {
             length += points.get(points.size() - 1).distanceTo(newPoint);
             points.add(newPoint);
 
-            if (this.nodeMarks.get(nodeId)) {
-                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo, points));
+            if (this.nodeMarks.contains(nodeId)) {
+                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo,
+                        points));
 
                 length = 0;
                 points = new ArrayList<Point>();
@@ -197,7 +219,7 @@ public class WayToArc {
     public ArrayList<Arc> convert(List<Way> ways) {
         // Find vertex...
         LOGGER.info("finding vertices inside ways... ");
-        this.nodeMarks = findVertex(ways);
+        findVertex(ways);
 
         // Convert arcs
         LOGGER.info("converting way to arcs... ");

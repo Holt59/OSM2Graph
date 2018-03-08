@@ -50,7 +50,8 @@ public class OSM2GraphConfiguration {
             }
             File f = new File(file);
             if (f.isDirectory()) {
-                throw new IllegalArgumentException("output file parameter points to a directory, must be a file");
+                throw new IllegalArgumentException(
+                        "output file parameter points to a directory, must be a file");
             }
             else if (f.exists() && !f.canWrite()) {
                 throw new IllegalArgumentException(
@@ -189,6 +190,11 @@ public class OSM2GraphConfiguration {
      * @throws IllegalArgumentException thrown if configuration is invalid
      */
     public void validate() throws IllegalArgumentException {
+        File parent = getOutputFile().getAbsoluteFile().getParentFile();
+        if (!parent.exists()) {
+            throw new IllegalArgumentException(
+                    "Directory " + parent.getAbsolutePath() + " does not exist.");
+        }
         getGraphWriter().validate(this);
     }
 }

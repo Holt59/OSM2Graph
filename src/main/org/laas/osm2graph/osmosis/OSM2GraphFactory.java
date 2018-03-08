@@ -1,7 +1,6 @@
 package org.laas.osm2graph.osmosis;
 
 import org.laas.osm2graph.model.OSM2GraphConfiguration;
-import org.laas.osm2graph.utils.Constants;
 import org.laas.osm2graph.writers.GraphWriterFactory;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskConfiguration;
 import org.openstreetmap.osmosis.core.pipeline.common.TaskManager;
@@ -25,9 +24,11 @@ public class OSM2GraphFactory extends TaskManagerFactory {
     @Override
     protected TaskManager createTaskManagerImpl(TaskConfiguration taskConfig) {
         OSM2GraphConfiguration configuration = new OSM2GraphConfiguration();
-        configuration.addGraphWriter(getStringArgument(taskConfig, PARAM_WRITER, GraphWriterFactory.DEFAULT_WRITER));
-        configuration.addOutputFile(getStringArgument(taskConfig, PARAM_OUTFILE, Constants.DEFAULT_PARAM_OUTFILE));
-        configuration.addPreferredLanguages(getStringArgument(taskConfig, PARAM_PREFERRED_LANGUAGES, null));
+        configuration.addGraphWriter(
+                getStringArgument(taskConfig, PARAM_WRITER, GraphWriterFactory.DEFAULT_WRITER));
+        configuration.addOutputFile(getStringArgument(taskConfig, PARAM_OUTFILE));
+        configuration.addPreferredLanguages(
+                getStringArgument(taskConfig, PARAM_PREFERRED_LANGUAGES, null));
         configuration.setMapId(getStringArgument(taskConfig, PARAM_MAPID, null));
         configuration.setMapName(getStringArgument(taskConfig, PARAM_MAPNAME, null));
         configuration.setThreads(getIntegerArgument(taskConfig, PARAM_THREADS, 1));
