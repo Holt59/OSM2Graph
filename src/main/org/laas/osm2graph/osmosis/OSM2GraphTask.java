@@ -92,7 +92,7 @@ public class OSM2GraphTask implements Sink {
         Instant start = Instant.now();
         ArrayList<Arc> arcs = new WayToArc(this.vertices, this.configuration).convert(this.ways);
         LOGGER.info("converted " + ways.size() + " ways to " + arcs.size() + " arcs in "
-                + Duration.between(start, Instant.now()).getNano() / 1000 + "us.");
+                + Duration.between(start, Instant.now()) + ".");
 
         LOGGER.info("retrieving vertices from arcs... ");
         ArrayList<Vertex> nodes = new ArrayList<Vertex>(2 * arcs.size());

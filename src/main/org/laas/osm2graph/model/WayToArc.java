@@ -81,8 +81,8 @@ public class WayToArc {
     };
 
     // Tags to keep:
-    private final static List<String> USEFUL_TAGS = Arrays.asList(
-            new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
+    private final static List<String> USEFUL_TAGS = Arrays
+            .asList(new String[]{ "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -289,7 +289,7 @@ public class WayToArc {
                             count += processors[i].getNumberOfWaysProcessed();
                         }
                         LOGGER.info("processed " + count + " out of " + ways.size() + " ways.");
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     }
                     catch (InterruptedException ex) {
                         break;
