@@ -234,8 +234,8 @@ public class WayToArc {
             points.add(newPoint);
 
             if (this.nodeMarks.contains(nodeId)) {
-                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) length, roadinfo,
-                        points));
+                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) (length * 1000),
+                        roadinfo, points));
 
                 length = 0;
                 points = new ArrayList<Point>();

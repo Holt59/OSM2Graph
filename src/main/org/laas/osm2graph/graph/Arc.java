@@ -11,7 +11,7 @@ public class Arc {
     // Destination node.
     private final Vertex origin, destination;
 
-    // Length of the road (in meters).
+    // Length of the road (in millimeters).
     private final int length;
 
     // Road information.
@@ -25,7 +25,7 @@ public class Arc {
      * 
      * @param origin Origin of this arc.
      * @param dest Destination of this arc.
-     * @param length Length of this arc (in meters).
+     * @param length Length of this arc (in millimeters).
      * @param roadInformation Road information for this arc.
      * @param list Points representing this arc.
      */
@@ -62,17 +62,10 @@ public class Arc {
     }
 
     /**
-     * @return Length of this arc, in meters.
+     * @return Length of this arc, in millimeters.
      */
     public int getLength() {
         return length;
-    }
-
-    /**
-     * @return Minimum time required to travel this arc, in seconds.
-     */
-    public double getMinimumTravelTime() {
-        return getLength() * 3600.0 / (info.getMaximumSpeed() * 1000.0);
     }
 
     /**
