@@ -90,8 +90,8 @@ public class WayToArc {
     // Set of vertex IDs.
     protected final Set<Long> nodeMarks;
 
-    // Mapping road name -> Road informations
-    protected final List<RoadInformation> roadinfos;
+    // Set of road informations.
+    protected final Map<RoadInformation, RoadInformation> roadinfos;
 
     // Configuration.
     protected final OSM2GraphConfiguration configuration;
@@ -101,7 +101,7 @@ public class WayToArc {
      */
     public WayToArc(Map<Long, Vertex> vertices, OSM2GraphConfiguration configuration) {
         this.vertices = vertices;
-        this.roadinfos = Collections.synchronizedList(new ArrayList<RoadInformation>());
+        this.roadinfos = Collections.synchronizedMap(new HashMap<>());
         this.configuration = configuration;
         this.nodeMarks = new HashSet<>(vertices.size());
     }
@@ -164,20 +164,14 @@ public class WayToArc {
 
         String name = tags.getOrDefault("name", "");
 
-        RoadInformation roadinfo = null;
+        RoadInformation roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
+        RoadInformation previous = roadinfos.getOrDefault(roadinfo, null);
 
-        for (int i = 0; i < roadinfos.size() && roadinfo == null; ++i) {
-            RoadInformation ri = roadinfos.get(i);
-            if (ri.getName().equals(name) && (ri.isOneWay() == oneWay)
-                    && ri.getType().equals(roadType) && ri.getMaximumSpeed() == maxSpeed
-                    && ri.getAccess() == access) {
-                roadinfo = ri;
-            }
+        if (previous == null) {
+            roadinfos.put(roadinfo, roadinfo);
         }
-
-        if (roadinfo == null) {
-            roadinfo = new RoadInformation(roadType, access, oneWay, maxSpeed, name);
-            roadinfos.add(roadinfo);
+        else {
+            roadinfo = previous;
         }
 
         return roadinfo;

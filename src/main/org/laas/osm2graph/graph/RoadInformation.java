@@ -45,7 +45,8 @@ public class RoadInformation {
     // Name of the road.
     private final String name;
 
-    public RoadInformation(RoadType roadType, long access, boolean isOneWay, int maxSpeed, String name) {
+    public RoadInformation(RoadType roadType, long access, boolean isOneWay, int maxSpeed,
+            String name) {
         this.type = roadType;
         this.access = access;
         this.oneway = isOneWay;
@@ -90,7 +91,6 @@ public class RoadInformation {
 
     /*
      * (non-Javadoc)
-     * 
      * @see java.lang.Object#toString()
      */
     @Override
@@ -102,7 +102,46 @@ public class RoadInformation {
         if (getType() == RoadType.MOTORWAY) {
             typeAsString = "highway";
         }
-        return typeAsString + " : " + getName() + " " + (isOneWay() ? " (oneway) " : "") + maxSpeed + " km/h (max.)";
+        return typeAsString + " : " + getName() + " " + (isOneWay() ? " (oneway) " : "") + maxSpeed
+                + " km/h (max.)";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (access ^ (access >>> 32));
+        result = prime * result + maxSpeed;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + (oneway ? 1231 : 1237);
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RoadInformation other = (RoadInformation) obj;
+        if (access != other.access)
+            return false;
+        if (maxSpeed != other.maxSpeed)
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!name.equals(other.name))
+            return false;
+        if (oneway != other.oneway)
+            return false;
+        if (type != other.type)
+            return false;
+        return true;
     }
 
 }
