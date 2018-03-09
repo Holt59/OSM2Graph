@@ -81,8 +81,8 @@ public class WayToArc {
     };
 
     // Tags to keep:
-    private final static List<String> USEFUL_TAGS = Arrays
-            .asList(new String[]{ "name", "highway", "natural", "junction", "maxspeed", "oneway" });
+    private final static List<String> USEFUL_TAGS = Arrays.asList(
+            new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -307,12 +307,6 @@ public class WayToArc {
         }
 
         logger.interrupt();
-
-        for (Arc arc: arcs) {
-            if (arc.getLength() > (1 << 16) - 1) {
-                LOGGER.info("Too long arc: " + arc.getLength());
-            }
-        }
 
         return arcs;
     }
