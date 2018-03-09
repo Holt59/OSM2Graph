@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -112,8 +112,8 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
         dos.writeByte(value & 0xff);
     }
 
-    protected IdentityHashMap<RoadInformation, Integer> getRoadInformations(List<Vertex> nodes) {
-        IdentityHashMap<RoadInformation, Integer> rinfos = new IdentityHashMap<RoadInformation, Integer>();
+    protected Map<RoadInformation, Integer> getRoadInformations(List<Vertex> nodes) {
+        Map<RoadInformation, Integer> rinfos = new HashMap<>();
         for (Vertex node: nodes) {
             for (Arc arc: node.getSuccessors()) {
                 if (!rinfos.containsKey(arc.getInfo())) {
@@ -134,7 +134,7 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
         dos.writeUTF(graph.getMapName());
 
         List<Vertex> nodes = graph.getNodes();
-        IdentityHashMap<RoadInformation, Integer> infos = getRoadInformations(nodes);
+        Map<RoadInformation, Integer> infos = getRoadInformations(nodes);
 
         RoadInformation[] sortedInfos = new RoadInformation[infos.size()];
         for (Map.Entry<RoadInformation, Integer> entry: infos.entrySet()) {
@@ -189,8 +189,10 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 dos.writeShort(points.size() - 2);
 
                 for (int i = 1; i < points.size() - 1; ++i) {
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
                 }
             }
         }
@@ -216,12 +218,13 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
             throw new IllegalArgumentException("Cannot encode the specified ID using UTF-8.");
         }
         if (bytes.length > MAP_ID_FIELD_LENGTH) {
-            throw new IllegalArgumentException(
-                    "Specified ID is too long, ID must be less than " + MAP_ID_FIELD_LENGTH + " bytes long in UTF-8.");
+            throw new IllegalArgumentException("Specified ID is too long, ID must be less than "
+                    + MAP_ID_FIELD_LENGTH + " bytes long in UTF-8.");
         }
 
         if (configuration.getMapName() == null) {
-            throw new IllegalArgumentException("A map name must be specified in order to use this writer.");
+            throw new IllegalArgumentException(
+                    "A map name must be specified in order to use this writer.");
         }
     }
 
