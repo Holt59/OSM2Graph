@@ -1,1 +1,1 @@
-motorway,trunk,primary,secondary,motorway_link,trunk_link,primary_link,secondary_link,tertiary,residential,unclassified,road,living_street,service,roundabout,coastline,pedestrian,track,steps,bridleway,cycleway
+motorway,trunk,primary,secondary,motorway_link,trunk_link,primary_link,secondary_link,tertiary,residential,unclassified,road,living_street,service,roundabout,coastline,footway,track,steps,bridleway,cycleway
