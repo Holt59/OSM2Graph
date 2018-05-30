@@ -11,8 +11,8 @@ public class Arc {
     // Destination node.
     private final Vertex origin, destination;
 
-    // Length of the road (in millimeters).
-    private final int length;
+    // Length of the road (in meters).
+    private final double length;
 
     // Road information.
     private final RoadInformation info;
@@ -25,11 +25,11 @@ public class Arc {
      * 
      * @param origin Origin of this arc.
      * @param dest Destination of this arc.
-     * @param length Length of this arc (in millimeters).
+     * @param length Length of this arc (in meters).
      * @param roadInformation Road information for this arc.
      * @param list Points representing this arc.
      */
-    public Arc(int id, Vertex origin, Vertex dest, int length, RoadInformation roadInformation,
+    public Arc(int id, Vertex origin, Vertex dest, double length, RoadInformation roadInformation,
             List<Point> list) {
         this.id = id;
         this.origin = origin;
@@ -62,9 +62,9 @@ public class Arc {
     }
 
     /**
-     * @return Length of this arc, in millimeters.
+     * @return Length of this arc, in meters.
      */
-    public int getLength() {
+    public double getLength() {
         return length;
     }
 

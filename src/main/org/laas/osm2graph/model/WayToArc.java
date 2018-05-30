@@ -81,8 +81,8 @@ public class WayToArc {
     };
 
     // Tags to keep:
-    private final static List<String> USEFUL_TAGS = Arrays.asList(
-            new String[] { "name", "highway", "natural", "junction", "maxspeed", "oneway" });
+    private final static List<String> USEFUL_TAGS = Arrays
+            .asList(new String[]{ "name", "highway", "natural", "junction", "maxspeed", "oneway" });
 
     // Mapping ID (OSM) -> Vertex.
     protected final Map<Long, Vertex> vertices;
@@ -234,8 +234,8 @@ public class WayToArc {
             points.add(newPoint);
 
             if (this.nodeMarks.contains(nodeId)) {
-                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), (int) (length * 1000),
-                        roadinfo, points));
+                arcs.add(new Arc(arcs.size(), origin, vertices.get(nodeId), length, roadinfo,
+                        points));
 
                 length = 0;
                 points = new ArrayList<Point>();

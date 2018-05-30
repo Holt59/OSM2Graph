@@ -182,7 +182,7 @@ public class BinaryGraphWriterInsa2018 implements GraphWriter {
                 write24bits(infos.get(arc.getInfo()));
 
                 // Length of the arc.
-                dos.writeInt(arc.getLength());
+                dos.writeInt((int) (arc.getLength() * 1000));
 
                 // Number of segments.
                 List<Point> points = arc.getPoints();

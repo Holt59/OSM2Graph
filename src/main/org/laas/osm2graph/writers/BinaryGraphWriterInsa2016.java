@@ -178,15 +178,17 @@ public class BinaryGraphWriterInsa2016 implements GraphWriter {
                 write24bits(infos.get(arc.getInfo()));
 
                 // Length of the arc.
-                dos.writeShort(arc.getLength());
+                dos.writeShort((int) (arc.getLength() * 1000));
 
                 // Number of segments.
                 List<Point> points = arc.getPoints();
                 dos.writeShort(points.size() - 2);
 
                 for (int i = 1; i < points.size() - 1; ++i) {
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
-                    dos.writeShort((int) (2.e5 * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLongitude() - points.get(i - 1).getLongitude())));
+                    dos.writeShort((int) (2.e5
+                            * (points.get(i).getLatitude() - points.get(i - 1).getLatitude())));
                 }
             }
         }
