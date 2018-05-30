@@ -1,11 +1,13 @@
 # OSM2Graph
 
-Osmosis plugin to generate graph files from OSM files.
+[Osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) plugin to generate graph files from OSM files.
 
 # Usage
 
-You need to have [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) and put the `osm2graph.jar` file in the `plugins/` 
-directory of `osmosis`.
+You need to have [osmosis](https://wiki.openstreetmap.org/wiki/Osmosis) somewhere on your system 
+and the `osm2graph.jar` file in the `plugins/` subdirectory of `osmosis`.
+
+Typical run:
 
 ```bash
 bin/osmosis --rb input_map.osm.pbf \ 
@@ -17,21 +19,25 @@ bin/osmosis --rb input_map.osm.pbf \
 
 The only mandatory parameters are `file` and `accept-ways` (currently). 
 The default `writer` is `insa2018`. 
-Except for `threads`, parameters of the writer  (`id` and `name` in the example above) depend
-on the actual writer (e.g. `id` must be convertible to `int` for `insa2016` and `name` should not be specified).
+Except for `threads`, parameters of the writer  (`id` and `name` in the example above) may not
+be used or may be mandatory for the specified writer (e.g. `id` must be convertible to `int` for `insa2016`
+and `name` should not be specified).
 
 You can use any input mode for `osmosis` (pbf, xml, mysql, ...). 
 The `--tf reject-relations` and `--used-node` options are optional but can speed up the process quite a bit.
 
 The `--tf accept-ways` option is **mandatory** because OSM2Graph does not handle all ways:
 
-- The `natural=coastline` parameter is optional, you can use it to add coastline to your graph (useful for quick drawings).
 - The `highway=...` parameter is **mandatory** &mdash; The list of supported values can be found in `resources/highway-filter.cmd`, you can use a subset of this if you want.
+- The `natural=coastline` and `junction=roundabout` parameter are optional, you can use them to add coastlines to 
+your graph (useful for quick drawings) and take roundabout into account (some roundabouts are actually specified
+as ways in OSM files).
 
-The plugin should be relatively fast, you can increase the number of threads (using the `threads`) argument 
-to speed it up.
+The plugin should be relatively fast and you can increase the number of threads (using the `threads` argument) 
+to speed it up quite a bit.
 
-*Note:* The slowest part of the plugins is the processing of OSM ways, which is the only multi-threaded part.
+*Note:* The slowest part of the plugins is (currently) the processing of OSM ways, which is (currently) the only
+multi-threaded part.
 
 # Using a custom writer
 
@@ -48,10 +54,9 @@ static {
 You writer should be default constructible (i.e., have a constructor that takes no argument) and implement 
 the following methods:
 
-- `writeGraph` - the actual implementation of the write.
-- `setOutputStream` - method used to set the output stream, the stream given by the task is a `BufferedInputStream`
-from the file in the parameters.
-- `getDefaultExtension` - used to add an extension when the user did not specify one.
-- `validate` - validate the set of parameters given by the user and throw exceptions if something is wrong.
+- `writeGraph` &mdash; The actual implementation of the write (see the [Graph](https://github.com/Holt59/OSM2Graph/blob/master/src/main/org/laas/osm2graph/graph/Graph.java) class for more information).
+- `setOutputStream` &mdash; Method used to set the output stream. This method is guaranteed to be called before `writeGraph`.
+- `getDefaultExtension` &mdash; Used to add an extension when the user did not specify one.
+- `validate` &mdash; Validate the set of parameters given by the user and throw exceptions if something is wrong.
 
 You can look at the [GraphWriter](https://github.com/Holt59/OSM2Graph/blob/master/src/main/org/laas/osm2graph/writers/GraphWriter.java) interface, or the existings writers: [BinaryGraphWriterInsa2016](https://github.com/Holt59/OSM2Graph/blob/master/src/main/org/laas/osm2graph/writers/BinaryGraphWriterInsa2016.java) and [BinaryGraphWriterInsa2018](https://github.com/Holt59/OSM2Graph/blob/master/src/main/org/laas/osm2graph/writers/BinaryGraphWriterInsa2018.java).
